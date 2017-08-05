@@ -1,0 +1,5 @@
+# Files specific to OS X
+.DS_Store
+
+# Developer notes
+private/
