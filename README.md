@@ -17,12 +17,12 @@ The application fulfills the requirements of the “Mac Calculator Clone” exer
 
 The exercise builds the application in 3 stages.
 
-Stage 1 constructs a clone of the appearance and aesthetic response of the Calculator application of the Macintosh OS X operating system. The calculator responds to hovering and to clicks by darkening the target elements. Its appearance and response are produced by HTML and CSS code.
+Stage 1 constructs a clone of the appearance and aesthetic response of the Calculator application of the Macintosh OS X operating system. The calculator responds to hovering and to clicks by darkening the target elements. Its appearance and response are produced by HTML and CSS code. The calculator does not calculate.
 
 ### Implementation notes
 
 ## Usage and Examples
 
-Stage 1: To experience the product of stage 1, open the [stage-1 web page](https://jrpool.github.io/calculator/stage1/) in a web browser.
+Stage 1: To experience the product of stage 1, open the [stage-1 web page](https://jrpool.github.io/calculator/stage1/) in a web browser, hover over buttons, and click on buttons.
 
 [lg]: https://www.learnersguild.org
