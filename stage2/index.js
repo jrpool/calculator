@@ -1,3 +1,54 @@
+// Define a function to update and retrieve the session state.
+var state = (function () {
+  var state = {
+    lastTerms: [],
+    currentNum: 0,
+    currentOp: undefined
+  };
+  var trimState = function trimState() {
+    var termCount = state.lastTerms.length;
+    if (termCount > 2) {
+      state.lastTerms.splice(0, termCount - 2);
+      termCount = 2;
+    }
+    if (termCount === 2 && state.lastTerms[0][0] === 'op') {
+      state.lastTerms.shift();
+    }
+  };
+  var showState = function showState() {
+    trimState();
+    var currentItem = state.currentOp || Number.parseInt(state.currentNum);
+    document.getElementById('result').innerText
+      = state.lastTerms.map(array => array[1]).join('')
+      + currentItem;
+  };
+  var takeDigit = function takeDigit(digit) {
+    if (state.currentNum !== undefined) {
+      state.currentNum = 10 * state.currentNum + digit;
+    }
+    else if (state.currentOp !== undefined) {
+      state.currentNum = digit;
+      state.lastTerms.push(['op', state.currentOp]);
+      state.currentOp = undefined;
+    }
+    else {
+      state.currentNum = digit;
+    }
+  };
+  var takeOp = function takeOp(op) {
+    state.currentOp = op;
+    if (state.currentNum !== undefined) {
+      state.lastTerms.push(['num', state.currentNum]);
+      state.currentNum = undefined;
+    }
+  };
+  return {
+    show: showState,
+    takeDigit: takeDigit,
+    takeOp: takeOp
+  };
+})();
+
 /*
   Define a function to return the text imputable to an element in the
   interactive section of the calculator.
@@ -26,18 +77,31 @@ var imputedText = function imputedText(element) {
   }
 };
 
-// Define a function to respond to a button click.
-var clickRespond = function clickRespond(event) {
-  var buttonText = imputedText(event.target);
-  document.getElementById('result').innerText += buttonText;
+// Define a function to respond to a button or key input.
+var inputRespond = function inputRespond(symbol) {
+  var symbolAsDigit = Number.parseInt(symbol);
+  if (Number.isInteger(symbolAsDigit)) {
+    state.takeDigit(symbolAsDigit);
+  }
+  else {
+    state.takeOp(symbol);
+  }
+  state.show();
 };
 
-// Define a function to respond to a keypress.
+// Define a function to respond to a button click.
+var clickRespond = function clickRespond(event) {
+  inputRespond(imputedText(event.target));
+};
+
+// Define a function to respond to a keyboard keypress.
 var keyRespond = function keyRespond(event) {
   var buttonKeys = {
     'Clear': 'C',
     'Escape': ['C', 'AC'],
     'Dead': 'AC',
+    'Backspace': '⌫',
+    'Enter': '=',
     '–': '+∕−',
     '%': '%',
     '/': '÷',
@@ -61,7 +125,7 @@ var keyRespond = function keyRespond(event) {
     if (Array.isArray(meaning)) {
       meaning = meaning[event.altKey ? 1 : 0];
     }
-    document.getElementById('result').innerText += meaning;
+    inputRespond(meaning);
   }
 };
 
