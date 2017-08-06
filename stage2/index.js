@@ -17,10 +17,14 @@ var state = (function () {
   };
   var showState = function showState() {
     trimState();
-    var currentItem = state.currentOp || Number.parseInt(state.currentNum);
-    document.getElementById('result').innerText
-      = state.lastTerms.map(array => array[1]).join('')
-      + currentItem;
+    var current = state.currentOp || Number.parseInt(state.currentNum);
+    var newText = state.lastTerms.map(array => array[1]).join('') + current;
+    var result = document.getElementById('result');
+    result.innerText = newText;
+    if (newText.length > 8) {
+      document.getElementById('result').style.fontSize
+        = Math.ceil(1800 / newText.length) + '%';
+    }
   };
   var takeDigit = function takeDigit(digit) {
     if (state.currentNum !== undefined) {
