@@ -1,9 +1,9 @@
 // Define a function to update and retrieve the session state.
 var state = (function () {
   var state = {
-    lastTerms: [],
-    currentNum: 0,
-    currentOp: undefined
+    currentNumString: '0',
+    currentOp: undefined,
+    lastTerms: []
   };
   var trimState = function trimState() {
     var termCount = state.lastTerms.length;
@@ -15,10 +15,22 @@ var state = (function () {
       state.lastTerms.shift();
     }
   };
+  var canonicalNum = function canonicalNum(numString, showAll) {
+    if (showAll) {
+      return numString;
+    }
+    else if (numString.includes('.')) {
+      return numString.replace(/[.]?0+$/, '');
+    }
+    else {
+      return numString;
+    }
+  }
   var showState = function showState() {
     trimState();
-    var current = state.currentOp || Number.parseInt(state.currentNum);
-    var newText = state.lastTerms.map(array => array[1]).join('') + current;
+    var newText
+      = state.lastTerms.map(array => array[1]).join('')
+      + (state.currentOp || canonicalNum(state.currentNumString, true));
     var result = document.getElementById('result');
     result.innerText = newText;
     if (newText.length > 8) {
@@ -26,29 +38,49 @@ var state = (function () {
         = Math.ceil(1800 / newText.length) + '%';
     }
   };
-  var takeDigit = function takeDigit(digit) {
-    if (state.currentNum !== undefined) {
-      state.currentNum = 10 * state.currentNum + digit;
-    }
-    else if (state.currentOp !== undefined) {
-      state.currentNum = digit;
+  var takeDigit = function takeDigit(digitString) {
+    if (state.currentOp) {
+      state.currentNumString = digitString;
       state.lastTerms.push(['op', state.currentOp]);
       state.currentOp = undefined;
     }
-    else {
-      state.currentNum = digit;
+    else if (digitString === '0' && state.currentNumString !== '0') {
+      state.currentNumString += '0';
     }
+    else if (digitString !== '0') {
+      if (state.currentNumString === '0') {
+        state.currentNumString = digitString;
+      }
+      else {
+        state.currentNumString += digitString;
+      }
+    }
+  // Ignore '0' if current number string is '0'.
   };
   var takeOp = function takeOp(op) {
     state.currentOp = op;
-    if (state.currentNum !== undefined) {
-      state.lastTerms.push(['num', state.currentNum]);
+    if (state.currentNumString) {
+      state.lastTerms.push(
+        ['num', canonicalNum(state.currentNumString, false)]
+      );
       state.currentNum = undefined;
     }
+  };
+  var takeDot = function takeDot() {
+    if (state.currentOp) {
+      state.lastTerms.push(['op', state.currentOp])
+      state.currentOp = undefined;
+      state.currentNumString = '0.';
+    }
+    else if (! state.currentNumString.includes('.')) {
+      state.currentNumString += '.';
+    }
+  // Ignore dot if not first in current number.
   };
   return {
     show: showState,
     takeDigit: takeDigit,
+    takeDot: takeDot,
     takeOp: takeOp
   };
 })();
@@ -83,9 +115,11 @@ var imputedText = function imputedText(element) {
 
 // Define a function to respond to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  var symbolAsDigit = Number.parseInt(symbol);
-  if (Number.isInteger(symbolAsDigit)) {
-    state.takeDigit(symbolAsDigit);
+  if (/^[0-9]$/.test(symbol)) {
+    state.takeDigit(symbol);
+  }
+  else if (symbol === '.') {
+    state.takeDot();
   }
   else {
     state.takeOp(symbol);
@@ -131,6 +165,7 @@ var keyRespond = function keyRespond(event) {
     }
     inputRespond(meaning);
   }
+// Ignore irrelevant key presses.
 };
 
 // Event listeners
