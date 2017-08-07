@@ -115,16 +115,18 @@ var imputedText = function imputedText(element) {
 
 // Define a function to respond to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  if (/^[0-9]$/.test(symbol)) {
-    state.takeDigit(symbol);
+  if (symbol.length === 1) {
+    if (/^[0-9]$/.test(symbol)) {
+      state.takeDigit(symbol);
+    }
+    else if (symbol === '.') {
+      state.takeDot();
+    }
+    else {
+      state.takeOp(symbol);
+    }
+    state.show();
   }
-  else if (symbol === '.') {
-    state.takeDot();
-  }
-  else {
-    state.takeOp(symbol);
-  }
-  state.show();
 };
 
 // Define a function to respond to a button click.
