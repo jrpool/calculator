@@ -95,7 +95,9 @@ var state = (function () {
       return '';
     }
     else {
-      return canonicalNumString(result.toString().replace(/^-/, '–'), false);
+      return canonicalNumString(
+        result.toString().replace(/^-/, '–'), false
+      );
     }
   };
   var takeOp = function takeOp(op) {
@@ -164,14 +166,14 @@ var imputedText = function imputedText(element) {
   }
   else if (classList.includes('calculator-button-area')) {
     if (classList.includes('vacant')) {
-      return element.previousElementSibling.innerText;
+      return element.previousElementSibling.firstElementChild.innerText;
     }
     else {
-      return element.innerText;
+      return element.firstElementChild.innerText;
     }
   }
   else if (classList.includes('calculator-button')) {
-    return element.innerText;
+    return element.firstElementChild.innerText;
   }
   else if (element.tagName.toLowerCase() === 'span') {
     return element.parentNode.innerText;

@@ -125,7 +125,7 @@ main {
 }
 
 #result {
-  font-size: xx-large;
+  font-size: 225%;
   text-align: right;
   padding-right: .9rem;
 }
