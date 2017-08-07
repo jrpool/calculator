@@ -28,15 +28,18 @@ var state = (function () {
   }
   var showState = function showState() {
     trimState();
+    var lastTermsString = state.lastTerms.map(array => array[1]).join(' ');
+    var currentString = (
+      state.currentOp || canonicalNumString(state.currentNumString, true)
+    );
     var newText
-      = state.lastTerms.map(array => array[1]).join(' ') + ' '
-      + (state.currentOp || canonicalNumString(state.currentNumString, true));
+      = (lastTermsString ? lastTermsString + ' ' : '') + currentString;
     var result = document.getElementById('result');
     result.innerText = newText;
-    if (newText.length > 8) {
-      document.getElementById('result').style.fontSize
-        = Math.ceil(1800 / newText.length) + '%';
-    }
+    var fontSizeString = (
+      newText.length > 8 ? Math.ceil(1800 / newText.length) : 225
+    ).toString() + '%';
+    document.getElementById('result').style.fontSize = fontSizeString;
   };
   var takeDigit = function takeDigit(digitString) {
     if (state.currentOp) {
