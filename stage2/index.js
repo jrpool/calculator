@@ -15,12 +15,12 @@ var state = (function () {
       state.lastTerms.shift();
     }
   };
-  var canonicalNum = function canonicalNum(numString, showAll) {
+  var canonicalNumString = function canonicalNumString(numString, showAll) {
     if (showAll) {
       return numString;
     }
     else if (numString.includes('.')) {
-      return numString.replace(/[.]?0+$/, '');
+      return numString.replace(/[.]?0+$/, '').replace(/^-/, '–');
     }
     else {
       return numString;
@@ -29,8 +29,8 @@ var state = (function () {
   var showState = function showState() {
     trimState();
     var newText
-      = state.lastTerms.map(array => array[1]).join('')
-      + (state.currentOp || canonicalNum(state.currentNumString, true));
+      = state.lastTerms.map(array => array[1]).join(' ') + ' '
+      + (state.currentOp || canonicalNumString(state.currentNumString, true));
     var result = document.getElementById('result');
     result.innerText = newText;
     if (newText.length > 8) {
@@ -57,14 +57,79 @@ var state = (function () {
     }
   // Ignore '0' if current number string is '0'.
   };
-  var takeOp = function takeOp(op) {
-    state.currentOp = op;
-    if (state.currentNumString) {
-      state.lastTerms.push(
-        ['num', canonicalNum(state.currentNumString, false)]
-      );
-      state.currentNumString = undefined;
+  var signInvert = function signInvert(numString) {
+    if (numString.length) {
+      if (numString[0] === '–') {
+        return numString.slice(1);
+      }
+      else {
+        return '–' + numString;
+      }
     }
+    else {
+      return '';
+    }
+  }
+  var doOp = function doOp () {
+    var op = state.lastTerms[1][1];
+    var term0 = Number.parseFloat(state.lastTerms[0][1].replace(/–/, '-'));
+    var term1 = Number.parseFloat(state.currentNumString.replace(/–/, '-'));
+    var result;
+    if (op === '+') {
+      result = term0 + term1;
+    }
+    else if (op === '–') {
+      result = term0 - term1;
+    }
+    else if (op === '×') {
+      result = term0 * term1;
+    }
+    // Precondition: dividend is not 0.
+    else if (op === '÷') {
+      result = term0 / term1;
+    }
+    if (result === undefined) {
+      return '';
+    }
+    else {
+      return canonicalNumString(result.toString().replace(/^-/, '–'), false);
+    }
+  };
+  var takeOp = function takeOp(op) {
+    if (op === '+/–') {
+      // Ignore '+/–' unless current item is a number.
+      if (state.currentNumString) {
+        state.currentNumString = signInvert(state.currentNumString);
+      }
+    }
+    else if (['+', '–', '×', '÷'].includes(op)) {
+      state.currentOp = op;
+      if (state.currentNumString) {
+        // If this op applies to the result of an op not yet computed:
+        if (state.lastTerms.length) {
+          // Compute and store it, unless it would be division by 0.
+          if (
+            state.lastTerms[1] !== '/'
+            || canonicalNumString(state.currentNumString, false) !== '0'
+          ) {
+            var opResult = doOp();
+            if (opResult.length) {
+              state.lastTerms.push(
+                ['num', canonicalNumString(opResult, false)]
+              );
+            }
+          }
+        }
+        // If this op applies to the first and only number, store the number.
+        else {
+          state.lastTerms.push(
+            ['num', canonicalNumString(state.currentNumString, false)]
+          );
+        }
+        state.currentNumString = undefined;
+      }
+    }
+  // Temporarily ignore other ops.
   };
   var takeDot = function takeDot() {
     if (state.currentOp) {
@@ -115,16 +180,18 @@ var imputedText = function imputedText(element) {
 
 // Define a function to respond to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  if (symbol.length === 1) {
-    if (/^[0-9]$/.test(symbol)) {
-      state.takeDigit(symbol);
-    }
-    else if (symbol === '.') {
-      state.takeDot();
-    }
-    else {
-      state.takeOp(symbol);
-    }
+  if (/^[0-9]$/.test(symbol)) {
+    state.takeDigit(symbol);
+    state.show();
+  }
+  else if (symbol === '.') {
+    state.takeDot();
+    state.show();
+  }
+  else if (
+    ['C', 'AC', '⌫', '=', '+/–', '%', '÷', '×', '–', '+'].includes(symbol)
+  ) {
+    state.takeOp(symbol);
     state.show();
   }
 };
@@ -142,7 +209,7 @@ var keyRespond = function keyRespond(event) {
     'Dead': 'AC',
     'Backspace': '⌫',
     'Enter': '=',
-    '–': '+∕−',
+    '–': '+/–',
     '%': '%',
     '/': '÷',
     '7': '7',
@@ -156,6 +223,7 @@ var keyRespond = function keyRespond(event) {
     '1': '1',
     '2': '2',
     '3': '3',
+    '+': '+',
     '0': '0',
     '.': '.',
     '=': '=',
