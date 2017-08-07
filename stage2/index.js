@@ -63,7 +63,7 @@ var state = (function () {
       state.lastTerms.push(
         ['num', canonicalNum(state.currentNumString, false)]
       );
-      state.currentNum = undefined;
+      state.currentNumString = undefined;
     }
   };
   var takeDot = function takeDot() {
