@@ -1,159 +1,187 @@
-// Define a function to update and retrieve the session state.
-var state = (function () {
+/*
+  Define a function that returns an initialized state.
+  Properties:
+    numString: string representation of most recent uncommitted number term.
+    op: most recent uncommitted operator.
+    terms: array of committed terms as ['op' or 'num', op or numString].
+*/
+var initState = (function () {
   var state = {
-    currentNumString: '0',
-    currentOp: undefined,
-    lastTerms: []
+    numString: '',
+    op: undefined,
+    terms: []
   };
-  var trimState = function trimState() {
-    var termCount = state.lastTerms.length;
-    if (termCount > 2) {
-      state.lastTerms.splice(0, termCount - 2);
-      termCount = 2;
-    }
-    if (termCount === 2 && state.lastTerms[0][0] === 'op') {
-      state.lastTerms.shift();
-    }
-  };
-  var canonicalNumString = function canonicalNumString(numString, showAll) {
-    if (showAll) {
-      return numString;
-    }
-    else if (numString.includes('.')) {
-      return numString.replace(/[.]?0+$/, '').replace(/^-/, '–');
+  return state;
+};
+
+// Define a function that returns a state with obsolete terms truncated.
+var trim = function trim(state) {
+  var newState = state;
+  var termCount = newState.terms.length;
+  if (termCount > 2) {
+    newState.terms.splice(0, termCount - 2);
+    termCount = 2;
+  }
+  if (termCount === 2 && newState.terms[0][0] === 'op') {
+    newState.lastTerms.shift();
+  }
+  return newState;
+};
+
+// Define a function that returns a standardized numeric string.
+var standardize = function standardize(numString) {
+  var standardString = numString.replace(/^-/, '–');
+  return standardString.includes('.')
+    ? standardString.replace(/[.]?0+$/, '')
+    : standardString;
+}
+
+// Define a function that displays the state in the calculator.
+var show = function show(state) {
+  var newState = trim(state);
+  var termString = Object.values(newState.terms).join(' ');
+  var pendingString = newState.op || newState.numString;
+  var showString = (termString ? termString + ' ' : '') + pendingString;
+  var shownResult = document.getElementById('result');
+  shownResult.innerText = showString;
+  var sizeSpec = (
+    showString.length > 8 ? Math.ceil(1800 / showString.length) : 225
+  ).toString() + '%';
+  document.getElementById('result').style.fontSize = sizeSpec;
+};
+
+/*
+  Define a function that responds to a digit entry, ignoring '0' entry if
+  current uncommitted number string is '0'.
+*/
+var takeDigit = function takeDigit(state, digit) {
+  if (state.op) {
+    state.numString = digit;
+    state.terms.push(['op', state.op]);
+    state.op = undefined;
+  }
+  else if (digit === '0' && state.numString !== '0') {
+    state.numString += '0';
+  }
+  else if (digit === '.' && !state.numString.includes('.')) {
+    state.numString += '.';
+  }
+  else if (digit !== '0' && digit !== '.') {
+    if (state.numString === '0') {
+      state.numString = digit;
     }
     else {
-      return numString;
+      state.numString += digit;
     }
   }
-  var showState = function showState() {
-    trimState();
-    var lastTermsString = state.lastTerms.map(array => array[1]).join(' ');
-    var currentString = (
-      state.currentOp || canonicalNumString(state.currentNumString, true)
-    );
-    var newText
-      = (lastTermsString ? lastTermsString + ' ' : '') + currentString;
-    var result = document.getElementById('result');
-    result.innerText = newText;
-    var fontSizeString = (
-      newText.length > 8 ? Math.ceil(1800 / newText.length) : 225
-    ).toString() + '%';
-    document.getElementById('result').style.fontSize = fontSizeString;
-  };
-  var takeDigit = function takeDigit(digitString) {
-    if (state.currentOp) {
-      state.currentNumString = digitString;
-      state.lastTerms.push(['op', state.currentOp]);
-      state.currentOp = undefined;
-    }
-    else if (digitString === '0' && state.currentNumString !== '0') {
-      state.currentNumString += '0';
-    }
-    else if (digitString !== '0') {
-      if (state.currentNumString === '0') {
-        state.currentNumString = digitString;
-      }
-      else {
-        state.currentNumString += digitString;
-      }
-    }
-  // Ignore '0' if current number string is '0'.
-  };
-  var signInvert = function signInvert(numString) {
-    if (numString.length) {
-      if (numString[0] === '–') {
-        return numString.slice(1);
-      }
-      else {
-        return '–' + numString;
-      }
-    }
-    else {
-      return '';
+};
+
+// Define a function that inverts the sign of a numeric string.
+var invert = function invert(numString) {
+  if (numString.length) {
+    return numString[0] === '–' ? numString.slice(1) : '–' + numString;
+  }
+  else {
+    return '';
+  }
+}
+
+/*
+  Define a function that toggles the presence of a percent sign on a
+  numeric string.
+*/
+var pctToggle = function pctToggle(numString) {
+  if (numString.length) {
+    return numString.endsWith('%') ? numString.slice(0, -1) : numString + '%';
+  }
+  else {
+    return '';
+  }
+}
+
+/*
+  Define a function that returns, as a string, the result of an operation
+  commitment (not an operator entry). An operation is committed when the
+  state’s committed terms are a number and an operator (in that order)
+  and an operator entry makes an uncommitted number eligible for commitment.
+  If and uncommitted number is committed and it is a percentage, it is
+  converted to its percentage of the committed number before the operation
+  is performed.
+  Precondition: There are 2 committed terms.
+*/
+var perform = function perform (state) {
+  var oldOp = state.terms[1][1];
+  var term0 = Number.parseFloat(state.terms[0][1].replace(/–/, '-'));
+  var term1String = state.numString.replace(/^–/, '-').replace(/%$/, '');
+  var term1 = Number.parseFloat(term1String) * (
+    state.numString.endsWith('%') ? term0 : 1
+  );
+  var result;
+  if (oldOp === '+') {
+    result = term0 + term1;
+  }
+  else if (op === '–') {
+    result = term0 - term1;
+  }
+  else if (op === '×') {
+    result = term0 * term1;
+  }
+  // Precondition: dividend is not 0.
+  else if (op === '÷') {
+    result = term0 / term1;
+  }
+  return typeof result === 'number'
+    ? standardize(result.toString().replace(/^-/, '–'))
+    : '';
+};
+
+/*
+  Define a function that responds to a binary operator entry. Make it the
+  uncommitted operator. If there is an uncommitted number, there are 2
+  committed terms, and the commitment of the uncommitted number would not
+  cause a division by 0, also perform the already-committed operation on
+  the committed number and the uncommitted one and commit the result. If
+  there is an uncommitted number and no committed term, commit the uncommitted
+  number.
+  Preconditions:
+    0. op is a binary operator.
+    1. There is at least 1 committed term.
+*/
+var takeOp = function takeOp(state, op) {
+  state.op = op;
+  if (
+    state.numString
+    && state.terms.length
+    && (
+      state.terms[1] !== '/'
+      || standardize(state.numString) !== '0'
+    )
+  ) {
+    var result = perform(state);
+    if (result.length) {
+      state.terms.push(['num', standardize(result)]);
     }
   }
-  var doOp = function doOp () {
-    var op = state.lastTerms[1][1];
-    var term0 = Number.parseFloat(state.lastTerms[0][1].replace(/–/, '-'));
-    var term1 = Number.parseFloat(state.currentNumString.replace(/–/, '-'));
-    var result;
-    if (op === '+') {
-      result = term0 + term1;
-    }
-    else if (op === '–') {
-      result = term0 - term1;
-    }
-    else if (op === '×') {
-      result = term0 * term1;
-    }
-    // Precondition: dividend is not 0.
-    else if (op === '÷') {
-      result = term0 / term1;
-    }
-    if (result === undefined) {
-      return '';
-    }
-    else {
-      return canonicalNumString(
-        result.toString().replace(/^-/, '–'), false
-      );
-    }
-  };
-  var takeOp = function takeOp(op) {
+  else {
+    state.terms.push(['num', standardize(state.numString)]);
+  }
+  state.numString = undefined;
+};
+
+/*
+  Define a function that responds to a toggle operator entry if there is
+  an uncommitted number.
+*/
+var takeToggle = function takeToggle(state, op) {
+  if (state.numString) {
     if (op === '+/–') {
-      // Ignore '+/–' unless current item is a number.
-      if (state.currentNumString) {
-        state.currentNumString = signInvert(state.currentNumString);
-      }
+      state.numString = invert(state.numString);
     }
-    else if (['+', '–', '×', '÷'].includes(op)) {
-      state.currentOp = op;
-      if (state.currentNumString) {
-        // If this op applies to the result of an op not yet computed:
-        if (state.lastTerms.length) {
-          // Compute and store it, unless it would be division by 0.
-          if (
-            state.lastTerms[1] !== '/'
-            || canonicalNumString(state.currentNumString, false) !== '0'
-          ) {
-            var opResult = doOp();
-            if (opResult.length) {
-              state.lastTerms.push(
-                ['num', canonicalNumString(opResult, false)]
-              );
-            }
-          }
-        }
-        // If this op applies to the first and only number, store the number.
-        else {
-          state.lastTerms.push(
-            ['num', canonicalNumString(state.currentNumString, false)]
-          );
-        }
-        state.currentNumString = undefined;
-      }
+    else if (op === '%') {
+      state.numString = pctToggle(state.numString);
     }
-  // Temporarily ignore other ops.
-  };
-  var takeDot = function takeDot() {
-    if (state.currentOp) {
-      state.lastTerms.push(['op', state.currentOp])
-      state.currentOp = undefined;
-      state.currentNumString = '0.';
-    }
-    else if (! state.currentNumString.includes('.')) {
-      state.currentNumString += '.';
-    }
-  // Ignore dot if not first in current number.
-  };
-  return {
-    show: showState,
-    takeDigit: takeDigit,
-    takeDot: takeDot,
-    takeOp: takeOp
-  };
-})();
+  }
+};
 
 /*
   Define a function to return the text imputable to an element in the
@@ -209,9 +237,9 @@ var clickRespond = function clickRespond(event) {
 // Define a function to respond to a keyboard keypress.
 var keyRespond = function keyRespond(event) {
   var buttonKeys = {
-    'Clear': 'C',
-    'Escape': ['C', 'AC'],
-    'Dead': 'AC',
+    'Clear': '⌫',
+    'Escape': ['⌫'],
+    'Dead': '⌫',
     'Backspace': '⌫',
     'Enter': '=',
     '–': '+/–',
@@ -246,3 +274,8 @@ var keyRespond = function keyRespond(event) {
 // Event listeners
 document.getElementById('buttons0').addEventListener('click', clickRespond);
 window.addEventListener('keydown', keyRespond);
+
+exports.show = showState;
+exports.takeDigit = takeDigit;
+exports.takeOp = takeOp;
+exports.takeToggle = takeToggle;
