@@ -182,20 +182,6 @@ var session = (function() {
   };
 })();
 
-// Define a function that returns the state without non-obsolete terms.
-var trimTerms = function trimTerms() {
-  var state = session.getState();
-  var termCount = state.terms.length;
-  if (termCount > 2) {
-    state.terms.splice(0, termCount - 2);
-    termCount = 2;
-  }
-  if (termCount === 2 && state.terms[0][0] === 'op') {
-    state.lastTerms.shift();
-  }
-  return state;
-};
-
 /*
   Define a function that returns, as a string, the result of a binary operation
   commitment (not an operator entry). A binary operation is committed when the
@@ -262,7 +248,7 @@ var takeDigit = function takeDigit(digit) {
   var state = session.getState();
   if (state.op) {
     state.numString = digit;
-    state.terms.push(['op', state.op]);
+    state.terms.push(state.op);
     state.op = undefined;
   }
   else if (state.numString) {
@@ -308,12 +294,12 @@ var takeBinary = function takeBinary(op) {
       ) {
         var result = perform();
         if (result.length) {
-          state.terms.push(['num', standardize(result, true)]);
+          state.terms = [standardize(result, true)];
         }
       }
     }
     else {
-      state.terms.push(['num', standardize(state.numString, true)]);
+      state.terms.push(standardize(state.numString, true));
     }
   }
   else {
@@ -372,7 +358,7 @@ var takeEqual = function takeEqual() {
   ) {
     var result = perform();
     if (result.length) {
-      state.terms.push(['num', standardize(result, true)]);
+      state.terms.push(standardize(result, true));
       state.numString = undefined;
     }
     session.setState(state);
@@ -386,7 +372,7 @@ var takeEqual = function takeEqual() {
   state in the calculator.
 */
 var show = function show() {
-  var state = trimTerms();
+  var state = session.getState();
   var termString = Object.values(state.terms).join(' ');
   var pendingString = state.op || state.numString || '';
   var showableString = (termString ? termString + ' ' : '') + pendingString;
