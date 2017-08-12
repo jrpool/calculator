@@ -237,7 +237,7 @@ var takeToggle = function takeToggle(op) {
   an uncommitted numeric string. Digits are defined as “0”–“9” and “.”.
 */
 var takeDigit = function takeDigit(digit) {
-  var state = getState();
+  var state = session.getState();
   if (state.op) {
     console.log('state.op is true');
     state.numString = digit;
@@ -274,6 +274,7 @@ var takeDigit = function takeDigit(digit) {
     1. There is at least 1 committed term.
 */
 var takeBinary = function takeBinary(op) {
+  var state = session.getState();
   if (state.op) {
     state.op = op;
   }
