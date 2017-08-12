@@ -34,9 +34,9 @@ var unbare = function unbare(bareString, hadMinus, hadPct) {
   is to be committed, standardize it fully ((1) leading “0”s deleted before
   final whole-number 0 or any other whole-number digit, (2) leading “.”
   prepended with “0”, (3) post-“.” trailing “0”s deleted, (4) trailing “.”
-  deleted). If the string is not to be committed, measures 1 and 2 only,
-  since trailing “.” and/or post-“.” “0”s will later become valid if more
-  digits are appended.
+  deleted, (5) “-0” converted to “0”). If the string is not to be committed,
+  measures 1 and 2 only, since other invalidities may later disappear if
+  more digits are appended.
   Precondition: numString is not blank.
 */
 var standardize = function standardize(numString, commit) {
@@ -56,6 +56,9 @@ var standardize = function standardize(numString, commit) {
     if (bareParts[1] === '') {
       bareParts.splice(1);
     }
+  }
+  if (commit && bareParts[0] === '0' && bareNS[1]) {
+    bareNS[1] = false;
   }
   bareNS[0] = bareParts.join('.');
   return unbare(...bareNS);
@@ -97,9 +100,6 @@ var truncate = function truncate(numString) {
   }
   else {
     bareNS[0] = bareNS[0].slice(0, -1);
-    if (bareNS[0].endsWith('.')) {
-      bareNS[0] = bareNS[0].slice(0, -1);
-    }
     if (bareNS[0] === '0' && bareNS[1]) {
       bareNS[1] = false;
     }
@@ -303,6 +303,9 @@ var takeBinary = function takeBinary(op) {
       state.op = op;
     }
   }
+  else if (state.op) {
+    state.op = op;
+  }
   session.setState(state);
 };
 
@@ -319,7 +322,7 @@ var takeDel = function takeDel() {
   if (state.numString) {
     var newString = truncate(state.numString);
     if (newString.length) {
-      state.numString = newString;
+      state.numString = standardize(newString, false);
     }
     else {
       state.numString = undefined;
@@ -333,7 +336,7 @@ var takeDel = function takeDel() {
     state.numString = state.terms.pop();
   }
   else if (state.terms.length) {
-    state.numString = truncate(state.terms.pop());
+    state.numString = standardize(truncate(state.terms.pop(), false));
   }
   else {
     return;
