@@ -284,10 +284,7 @@ var takeDigit = function takeDigit(digit) {
 */
 var takeBinary = function takeBinary(op) {
   var state = session.getState();
-  if (state.op) {
-    state.op = op;
-  }
-  else if (state.numString) {
+  if (state.numString) {
     if (state.terms.length) {
       if (
         state.terms[1] !== '/' || standardize(state.numString, true) !== '0'
@@ -302,9 +299,10 @@ var takeBinary = function takeBinary(op) {
       state.terms.push(standardize(state.numString, true));
     }
   }
-  else {
+  else if (!state.op) {
     return;
   }
+  state.op = op;
   session.setState(state);
 };
 
