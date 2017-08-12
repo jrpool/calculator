@@ -42,7 +42,7 @@ var unbare = function unbare(bareString, hadMinus, hadPct) {
 var standardize = function standardize(numString, commit) {
   var bareNS = bareNumString(numString);
   var bareParts = bareNS[0].split('.');
-  if (bareParts[0] === '') {
+  if (bareParts.length === 2 && bareParts[0] === '') {
     bareParts[0] = '0';
   }
   else if (bareParts[0].endsWith('0')) {
