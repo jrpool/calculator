@@ -303,7 +303,7 @@ var takeBinary = function takeBinary(op) {
       state.op = op;
     }
   }
-  else if (state.op) {
+  else if (state.op || state.terms.length) {
     state.op = op;
   }
   session.setState(state);
@@ -359,8 +359,8 @@ var takeEqual = function takeEqual() {
   ) {
     var result = perform();
     if (result.length) {
-      state.terms.push(standardize(result, true));
-      state.numString = undefined;
+      state.terms = [standardize(result, true)];
+      state.op = state.numString = undefined;
     }
     session.setState(state);
   }
