@@ -55,14 +55,6 @@ var standardize = function standardize(numString) {
   }
 };
 
-/*
-  Define a function that returns the length of a numeric string, with any
-  minus sign and any percent sign disregarded.
-*/
-var numStringBareLength = function numStringBareLength(numString) {
-  return numString.replace(/^-|%$/g, '').length;
-};
-
 // Define a function that inverts the sign of a numeric string.
 var invert = function invert(numString) {
   if (numString.length) {
@@ -92,13 +84,13 @@ var pctToggle = function pctToggle(numString) {
   last digit (“0”–“9” or “.”) truncated.
   Precondition: numString contains at least 1 digit.
 */
-var truncate = truncate(numString) {
+var truncate = function truncate(numString) {
   var bareNS = bareNumString(numString);
   if (bareNS[0].length === 1) {
     return '';
   }
   else {
-    bareNS[0] = slice(bareNS[0], 0, -1);
+    bareNS[0] = bareNS[0].slice(0, -1);
     if (bareNS[0].endsWith('.')) {
       bareNS[0] = bareNS[0].slice(0, -1);
     }
@@ -168,34 +160,18 @@ var imputedText = function imputedText(element) {
 
 // /// STATE INTERROGATION /// //
 
-/*
-  Define a function that returns an initialized state.
-  Properties:
-    numString: string representation of most recent uncommitted number term.
-    op: most recent uncommitted operator.
-    terms: array of committed terms as ['op' or 'num', op or numString].
-*/
-var initState = (function () {
-  var state = {
-    numString: '',
-    op: undefined,
-    terms: []
-  };
-  return state;
-});
-
-// Define a function that returns a state with obsolete terms truncated.
-var trimTerms = function trimTerms(state) {
-  var newState = state;
-  var termCount = newState.terms.length;
+// Define a function that returns the state without non-obsolete terms.
+var trimTerms = function trimTerms() {
+  var state = session.getState();
+  var termCount = state.terms.length;
   if (termCount > 2) {
-    newState.terms.splice(0, termCount - 2);
+    state.terms.splice(0, termCount - 2);
     termCount = 2;
   }
-  if (termCount === 2 && newState.terms[0][0] === 'op') {
-    newState.lastTerms.shift();
+  if (termCount === 2 && state.terms[0][0] === 'op') {
+    state.lastTerms.shift();
   }
-  return newState;
+  return state;
 };
 
 /*
@@ -208,7 +184,8 @@ var trimTerms = function trimTerms(state) {
   operation is performed.
   Precondition: There are 2 committed terms and an uncommitted numeric string.
 */
-var perform = function perform (state) {
+var perform = function perform() {
+  var state = session.getState();
   var oldOp = state.terms[1][1];
   var term0 = Number.parseFloat(state.terms[0][1]);
   var pureNS = pureNumString(state.numString);
@@ -218,14 +195,14 @@ var perform = function perform (state) {
   if (oldOp === '+') {
     result = term0 + term1;
   }
-  else if (op === '–') {
+  else if (oldOp === '–') {
     result = term0 - term1;
   }
-  else if (op === '×') {
+  else if (oldOp === '×') {
     result = term0 * term1;
   }
   // Precondition: divisor is not 0.
-  else if (op === '÷') {
+  else if (oldOp === '÷') {
     result = term0 / term1;
   }
   return typeof result === 'number' ? standardize(result.toString()) : '';
@@ -236,7 +213,8 @@ var perform = function perform (state) {
 /*
   Define a function that responds to a toggle operator entry.
 */
-var takeToggle = function takeToggle(state, op) {
+var takeToggle = function takeToggle(op) {
+  var state = session.getState();
   if (state.numString) {
     if (op === '+/-') {
       state.numString = invert(state.numString);
@@ -244,6 +222,10 @@ var takeToggle = function takeToggle(state, op) {
     else if (op === '%') {
       state.numString = pctToggle(state.numString);
     }
+    else {
+      return;
+    }
+    session.setState(state);
   }
 };
 
@@ -251,22 +233,32 @@ var takeToggle = function takeToggle(state, op) {
   Define a function that responds to a digit entry. If there is an uncommitted
   operator, commit it and initialize an uncommitted numeric string. If there
   is an uncommitted numeric string and the digit can validly be appended to
-  it, append it. If there is no committed or uncommitted term, initialize an uncommitted numeric string. Digits are defined as “0”–“9” and “.”.
+  it, append it. If there is no committed or uncommitted term, initialize
+  an uncommitted numeric string. Digits are defined as “0”–“9” and “.”.
 */
-var takeDigit = function takeDigit(state, digit) {
+var takeDigit = function takeDigit(digit) {
+  var state = getState();
   if (state.op) {
+    console.log('state.op is true');
     state.numString = digit;
     state.terms.push(['op', state.op]);
     state.op = undefined;
   }
-  else if (state.numString){
+  else if (state.numString) {
+    console.log('state.numString is true');
     var bareNS = bareNumString(state.numString);
     bareNS[0] += digit;
-    state.numString = standardize(unbare(...BareNS));
+    state.numString = standardize(unbare(...bareNS));
   }
   else if (!state.terms.length) {
-    state.numstring = digit === '.' ? '0.' : digit;
+    console.log('state.terms is blank');
+    state.numString = digit === '.' ? '0.' : digit;
+    console.log('state.numString after update is ' + state.numString);
   }
+  else {
+    return;
+  }
+  session.setState(state);
 };
 
 /*
@@ -281,7 +273,7 @@ var takeDigit = function takeDigit(state, digit) {
     0. op is a binary operator.
     1. There is at least 1 committed term.
 */
-var takeBinary = function takeBinary(state, op) {
+var takeBinary = function takeBinary(op) {
   if (state.op) {
     state.op = op;
   }
@@ -298,6 +290,10 @@ var takeBinary = function takeBinary(state, op) {
       state.terms.push(['num', standardize(state.numString)]);
     }
   }
+  else {
+    return;
+  }
+  session.setState(state);
 };
 
 /*
@@ -305,9 +301,11 @@ var takeBinary = function takeBinary(state, op) {
   an uncommitted term, delete its last character, except for any toggle
   character in a numeric string, and, if that deletion deletes the term
   and there is a committed term, uncommit the last committed term. If there
-  is no uncommitted term and there is a committed term, uncommit and truncate the last committed term. If there is no term, do nothing.
+  is no uncommitted term and there is a committed term, uncommit and
+  truncate the last committed term. If there is no term, do nothing.
 */
-var takeDel = function takeDel(state) {
+var takeDel = function takeDel() {
+  var state = session.getState();
   if (state.numString) {
     var newString = truncate(state.numString);
     if (newString.length) {
@@ -327,6 +325,10 @@ var takeDel = function takeDel(state) {
   else if (state.terms.length) {
     state.numString = truncate(state.terms.pop());
   }
+  else {
+    return;
+  }
+  session.setState(state);
 };
 
 /*
@@ -335,7 +337,8 @@ var takeDel = function takeDel(state) {
   state’s sole committed term and leaving the state with no uncommitted
   numeric string or operator. Otherwise, do nothing.
 */
-var takeEqual = function takeEqual(state) {
+var takeEqual = function takeEqual() {
+  var state = session.getState();
   if (
     state.numString
     && state.terms.length
@@ -346,17 +349,34 @@ var takeEqual = function takeEqual(state) {
       state.terms.push(['num', standardize(result)]);
       state.numString = undefined;
     }
+    session.setState(state);
   }
 };
 
 // /// STATE MODIFICATION: GENERAL /// //
 
 /*
+  Define a function that returns a function that sets and gets the
+  document’s state.
+*/
+var session = (function() {
+  var state = {
+    numString: '',
+    op: undefined,
+    terms: []
+  };
+  return {
+    getState: function() {return JSON.parse(JSON.stringify(state));},
+    setState: function(newState) {state = JSON.parse(JSON.stringify(newState));}
+  };
+})();
+
+/*
   Define a function that trims the terms of the state and displays the
   state in the calculator.
 */
-var show = function show(state) {
-  state.terms = trim(state).terms;
+var show = function show() {
+  var state = trimTerms();
   var termString = Object.values(state.terms).join(' ');
   var pendingString = state.op || state.numString;
   var showableString = (termString ? termString + ' ' : '') + pendingString;
@@ -371,24 +391,24 @@ var show = function show(state) {
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
   if (/^[0-9.]$/.test(symbol)) {
-    state.takeDigit(symbol);
+    takeDigit(symbol);
   }
   else if (['÷', '×', '–', '+'].includes(symbol)) {
-    state.takeBinary(symbol);
+    takeBinary(symbol);
   }
   else if (['+/-', '%'].includes(symbol)) {
-    state.takeToggle(symbol);
+    takeToggle(symbol);
   }
   else if (symbol === '⌫') {
-    state.takeDel(symbol);
+    takeDel(symbol);
   }
   else if (symbol === '=') {
-    state.takeEqual(symbol);
+    takeEqual(symbol);
   }
   else {
     return;
   }
-  state.show();
+  show();
 };
 
 // Define a function that responds to a button click.
@@ -398,7 +418,7 @@ var clickRespond = function clickRespond(event) {
 
 // Define a function that responds to a keyboard keypress.
 var keyRespond = function keyRespond(event) {
-  inputRespond(event.key);
+  inputRespond(keyToButton(event.key));
 };
 
 // /// EXECUTION /// //

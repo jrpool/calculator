@@ -75,7 +75,7 @@
         "error"
       ],
       "no-var": [
-        "error"
+        "off"
       ],
       "no-whitespace-before-property": [
         "error"
