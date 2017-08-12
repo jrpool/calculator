@@ -239,21 +239,17 @@ var takeToggle = function takeToggle(op) {
 var takeDigit = function takeDigit(digit) {
   var state = session.getState();
   if (state.op) {
-    console.log('state.op is true');
     state.numString = digit;
     state.terms.push(['op', state.op]);
     state.op = undefined;
   }
   else if (state.numString) {
-    console.log('state.numString is true');
     var bareNS = bareNumString(state.numString);
     bareNS[0] += digit;
     state.numString = standardize(unbare(...bareNS));
   }
   else if (!state.terms.length) {
-    console.log('state.terms is blank');
     state.numString = digit === '.' ? '0.' : digit;
-    console.log('state.numString after update is ' + state.numString);
   }
   else {
     return;
