@@ -194,8 +194,8 @@ var session = (function() {
 */
 var perform = function perform() {
   var state = session.getState();
-  var oldOp = state.terms[1][1];
-  var term0 = Number.parseFloat(state.terms[0][1]);
+  var oldOp = state.terms[1];
+  var term0 = Number.parseFloat(state.terms[0]);
   var pureNS = pureNumString(state.numString);
   var term1
     = Number.parseFloat(pureNS[0]) * (pureNS[1] ? term0 : 1);
