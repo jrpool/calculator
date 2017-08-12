@@ -255,7 +255,7 @@ var takeToggle = function takeToggle(op) {
     if (op === '+/-') {
       state.numString = invert(state.numString);
     }
-    else if (op === '⅟' && state.terms.length) {
+    else if (op === '⅟') {
       state.numString = recipToggle(state.numString);
     }
     else {
