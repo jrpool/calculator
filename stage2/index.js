@@ -31,19 +31,25 @@ var unbare = function unbare(bareString, hadMinus, hadPct) {
 
 /*
   Define a function that returns a standardized numeric string. If the string
-  is to be committed, standardize it fully (leading “0”s collapsed, leading
-  “.” prepended with “0”, post-“.” trailing “0”s deleted, trailing “.”
-  deleted). If the string is not to be committed, collapse any multiple
-  leading “0”s and prepend any leading “.” with “0”, but permit a trailing
-  “.” or post-“.” trailing “0”s, since they will later become valid if
-  more digits are appended.
+  is to be committed, standardize it fully ((1) leading “0”s deleted before
+  final whole-number 0 or any other whole-number digit, (2) leading “.”
+  prepended with “0”, (3) post-“.” trailing “0”s deleted, (4) trailing “.”
+  deleted). If the string is not to be committed, measures 1 and 2 only,
+  since trailing “.” and/or post-“.” “0”s will later become valid if more
+  digits are appended.
+  Precondition: numString is not blank.
 */
 var standardize = function standardize(numString, commit) {
   var bareNS = bareNumString(numString);
   var bareParts = bareNS[0].split('.');
-  bareParts[0] = bareParts[0].replace(/^0{2,}/, '0');
-  if (bareParts.length === 2 && bareParts[0] === '') {
+  if (bareParts[0] === '') {
     bareParts[0] = '0';
+  }
+  else if (bareParts[0].endsWith('0')) {
+    bareParts[0] = bareParts[0].replace(/^0{2,}/, '0');
+  }
+  else {
+    bareParts[0] = bareParts[0].replace(/^0+/, '');
   }
   if (commit && bareParts.length === 2) {
     bareParts[1] = bareParts[1].replace(/0+$/, '');
@@ -159,6 +165,22 @@ var imputedText = function imputedText(element) {
 };
 
 // /// STATE INTERROGATION /// //
+
+/*
+  Define a function that returns a function that gets and sets the
+  document’s state.
+*/
+var session = (function() {
+  var state = {
+    numString: '',
+    op: undefined,
+    terms: []
+  };
+  return {
+    getState: function() {return JSON.parse(JSON.stringify(state));},
+    setState: function(newState) {state = JSON.parse(JSON.stringify(newState));}
+  };
+})();
 
 // Define a function that returns the state without non-obsolete terms.
 var trimTerms = function trimTerms() {
@@ -358,22 +380,6 @@ var takeEqual = function takeEqual() {
 };
 
 // /// STATE MODIFICATION: GENERAL /// //
-
-/*
-  Define a function that returns a function that sets and gets the
-  document’s state.
-*/
-var session = (function() {
-  var state = {
-    numString: '',
-    op: undefined,
-    terms: []
-  };
-  return {
-    getState: function() {return JSON.parse(JSON.stringify(state));},
-    setState: function(newState) {state = JSON.parse(JSON.stringify(newState));}
-  };
-})();
 
 /*
   Define a function that trims the terms of the state and displays the
