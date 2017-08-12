@@ -21,38 +21,38 @@ var bareNumString = function bareNumString(numString) {
   ];
 };
 
-// Define a function that returns a complete numeric string.
+/*
+  Define a function that converts a bare-string array returned by
+  bareNumString into a complete numeric string and returns it.
+*/
 var unbare = function unbare(bareString, hadMinus, hadPct) {
   return (hadMinus ? '-' : '') + bareString + (hadPct ? '%' : '');
 };
 
-// Define a function that returns a standardized numeric string.
-var standardize = function standardize(numString) {
+/*
+  Define a function that returns a standardized numeric string. If the string
+  is to be committed, standardize it fully (leading “0”s collapsed, leading
+  “.” prepended with “0”, post-“.” trailing “0”s deleted, trailing “.”
+  deleted). If the string is not to be committed, collapse any multiple
+  leading “0”s and prepend any leading “.” with “0”, but permit a trailing
+  “.” or post-“.” trailing “0”s, since they will later become valid if
+  more digits are appended.
+*/
+var standardize = function standardize(numString, commit) {
   var bareNS = bareNumString(numString);
-  if (bareNS[0].includes('.')) {
-    var bareSegments = bareNS[0].split('.');
-    if (bareSegments[0].length > 1) {
-      bareSegments[0] = bareSegments[0].replace(/^0+(?=.$)/);
-    }
-    else if (bareSegments[0].length === 0) {
-      bareSegments[0] = '0';
-    }
-    if (bareSegments[1].length) {
-      bareSegments[1] = bareSegments[1].replace(/0+$/, '');
-    }
-    if (bareSegments[1].length === 0) {
-      bareNS[0] = bareSegments[1];
-    }
-    else {
-      bareNS[0] = bareSegments.join('.');
-    }
-    return unbare(bareSegments.join('.'), bareNS[1], bareNS[2]);
+  var bareParts = bareNS[0].split('.');
+  bareParts[0] = bareParts[0].replace(/^0{2,}/, '0');
+  if (bareParts.length === 2 && bareParts[0] === '') {
+    bareParts[0] = '0';
   }
-  else {
-    if (bareNS[0].length > 1) {
-      return unbare(...bareNS);
+  if (commit && bareParts.length === 2) {
+    bareParts[1] = bareParts[1].replace(/0+$/, '');
+    if (bareParts[1] === '') {
+      bareParts.splice(1);
     }
   }
+  bareNS[0] = bareParts.join('.');
+  return unbare(...bareNS);
 };
 
 // Define a function that inverts the sign of a numeric string.
@@ -80,8 +80,8 @@ var pctToggle = function pctToggle(numString) {
 };
 
 /*
-  Define a function that returns a standardized numeric string with its
-  last digit (“0”–“9” or “.”) truncated.
+  Define a function that returns a numeric string with its last digit
+  (“0”–“9” or “.”) truncated.
   Precondition: numString contains at least 1 digit.
 */
 var truncate = function truncate(numString) {
@@ -205,7 +205,7 @@ var perform = function perform() {
   else if (oldOp === '÷') {
     result = term0 / term1;
   }
-  return typeof result === 'number' ? standardize(result.toString()) : '';
+  return typeof result === 'number' ? standardize(result.toString(), true) : '';
 };
 
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
@@ -245,8 +245,13 @@ var takeDigit = function takeDigit(digit) {
   }
   else if (state.numString) {
     var bareNS = bareNumString(state.numString);
-    bareNS[0] += digit;
-    state.numString = standardize(unbare(...bareNS));
+    if (bareNS === '0' && digit === '0') {
+      return;
+    }
+    else {
+      bareNS[0] += digit;
+      state.numString = standardize(unbare(...bareNS), false);
+    }
   }
   else if (!state.terms.length) {
     state.numString = digit === '.' ? '0.' : digit;
@@ -276,15 +281,17 @@ var takeBinary = function takeBinary(op) {
   }
   else if (state.numString) {
     if (state.terms.length) {
-      if (state.terms[1] !== '/' || standardize(state.numString) !== '0') {
-        var result = perform(state);
+      if (
+        state.terms[1] !== '/' || standardize(state.numString, true) !== '0'
+      ) {
+        var result = perform();
         if (result.length) {
-          state.terms.push(['num', standardize(result)]);
+          state.terms.push(['num', standardize(result, true)]);
         }
       }
     }
     else {
-      state.terms.push(['num', standardize(state.numString)]);
+      state.terms.push(['num', standardize(state.numString, true)]);
     }
   }
   else {
@@ -339,11 +346,11 @@ var takeEqual = function takeEqual() {
   if (
     state.numString
     && state.terms.length
-    && (state.terms[1] !== '/' || standardize(state.numString) !== '0')
+    && (state.terms[1] !== '/' || standardize(state.numString, true) !== '0')
   ) {
-    var result = perform(state);
+    var result = perform();
     if (result.length) {
-      state.terms.push(['num', standardize(result)]);
+      state.terms.push(['num', standardize(result, true)]);
       state.numString = undefined;
     }
     session.setState(state);
