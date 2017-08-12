@@ -1,23 +1,23 @@
 // /// STRING MANIPULATION /// //
 
 /*
-  Define a function that returns a numeric string without a percent sign
-  and whether the string had a percent sign.
+  Define a function that returns a numeric string without a reciprocal sign
+  and whether the string had a reciprocal sign.
 */
 var pureNumString = function pureNumString(numString) {
-  return [numString.replace(/%$/, ''), numString.endsWith('%')];
+  return [numString.replace(/^⅟/, ''), numString.startsWith('⅟')];
 };
 
 /*
-  Define a function that returns a numeric string without a minus sign or
-  percent sign, and whether the string had a minus sign, and whether the
-  string had a percent sign.
+  Define a function that returns a numeric string without a reciprocal or
+  minus sign, whether the string had a reciprocal sign, and whether the
+  string had a minus sign.
 */
 var bareNumString = function bareNumString(numString) {
   return [
-    numString.replace(/^-|%$/g, ''),
-    numString.startsWith('-'),
-    numString.endsWith('%')
+    numString.replace(/^[⅟-]+/, ''),
+    numString.startsWith('⅟'),
+    /^⅟?-/.test(numString)
   ];
 };
 
@@ -25,8 +25,8 @@ var bareNumString = function bareNumString(numString) {
   Define a function that converts a bare-string array returned by
   bareNumString into a complete numeric string and returns it.
 */
-var unbare = function unbare(bareString, hadMinus, hadPct) {
-  return (hadMinus ? '-' : '') + bareString + (hadPct ? '%' : '');
+var unbare = function unbare(bareString, hadRecip, hadMinus) {
+  return (hadRecip ? '⅟' : '') + bareString + (hadMinus ? '-' : '');
 };
 
 /*
@@ -42,6 +42,7 @@ var unbare = function unbare(bareString, hadMinus, hadPct) {
 var standardize = function standardize(numString, commit) {
   var bareNS = bareNumString(numString);
   var bareParts = bareNS[0].split('.');
+  // Standardize leading “0”s.
   if (bareParts.length === 2 && bareParts[0] === '') {
     bareParts[0] = '0';
   }
@@ -51,14 +52,16 @@ var standardize = function standardize(numString, commit) {
   else {
     bareParts[0] = bareParts[0].replace(/^0+/, '');
   }
+  // Delete trailing decimal “0”s.
   if (commit && bareParts.length === 2) {
     bareParts[1] = bareParts[1].replace(/0+$/, '');
     if (bareParts[1] === '') {
       bareParts.splice(1);
     }
   }
-  if (commit && bareParts[0] === '0' && bareNS[1]) {
-    bareNS[1] = false;
+  // Convert “-0” to “0”.
+  if (commit && bareParts[0] === '0' && bareNS[2]) {
+    bareNS[2] = false;
   }
   bareNS[0] = bareParts.join('.');
   return unbare(...bareNS);
@@ -67,7 +70,13 @@ var standardize = function standardize(numString, commit) {
 // Define a function that inverts the sign of a numeric string.
 var invert = function invert(numString) {
   if (numString.length) {
-    return numString[0] === '-' ? numString.slice(1) : '-' + numString;
+    return numString.includes('-')
+      ? numString.replace(/-/, '')
+      : (
+        numString.startsWith('⅟')
+          ? numString.replace(/^⅟/, '⅟-')
+          : '-' + numString
+      );
   }
   else {
     return '';
@@ -76,12 +85,12 @@ var invert = function invert(numString) {
 
 /*
   Define a function that returns a numeric string with the presence of a
-  percent sign on it toggled.
+  reciprocal sign on it toggled.
 */
-var pctToggle = function pctToggle(numString) {
+var recipToggle = function recipToggle(numString) {
   if (numString.length) {
     var pureNS = pureNumString(numString);
-    return pureNS[1] ? pureNS[0] : numString + '%';
+    return pureNS[1] ? pureNS[0] : '⅟' + numString;
   }
   else {
     return '';
@@ -100,8 +109,8 @@ var truncate = function truncate(numString) {
   }
   else {
     bareNS[0] = bareNS[0].slice(0, -1);
-    if (bareNS[0] === '0' && bareNS[1]) {
-      bareNS[1] = false;
+    if (bareNS[0] === '0' && bareNS[2]) {
+      bareNS[2] = false;
     }
     return unbare(...bareNS);
   }
@@ -116,7 +125,7 @@ var keyToButton = function keyToButton(keyText) {
     'Backspace': '⌫',
     'Enter': '=',
     '~': '+/-',
-    '%': '%',
+    '\\': '⅟',
     '/': '÷',
     '7': '7',
     '8': '8',
@@ -197,8 +206,15 @@ var perform = function perform() {
   var oldOp = state.terms[1];
   var term0 = Number.parseFloat(state.terms[0]);
   var pureNS = pureNumString(state.numString);
-  var term1
-    = Number.parseFloat(pureNS[0]) * (pureNS[1] ? term0 / 100 : 1);
+  var term1 = Number.parseFloat(pureNS[0]);
+  if (pureNS[1]) {
+    if (term1 === 0) {
+      return '';
+    }
+    else {
+      term1 = 1 / term1;
+    }
+  }
   var result;
   if (oldOp === '+') {
     result = term0 + term1;
@@ -216,6 +232,18 @@ var perform = function perform() {
   return typeof result === 'number' ? standardize(result.toString(), true) : '';
 };
 
+/*
+  Define a function that returns whether a binary operation commitment would
+  be a division by 0.
+  Preconditions:
+    0. state.terms has length 2.
+    1. state.numString exists.
+*/
+var divBy0 = function divBy0() {
+  var state = session.getState();
+  return state.terms[1] === '/' && standardize(state.numString, true) === '0';
+}
+
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
 /*
@@ -227,8 +255,8 @@ var takeToggle = function takeToggle(op) {
     if (op === '+/-') {
       state.numString = invert(state.numString);
     }
-    else if (op === '%' && state.terms.length) {
-      state.numString = pctToggle(state.numString);
+    else if (op === '⅟' && state.terms.length) {
+      state.numString = recipToggle(state.numString);
     }
     else {
       return;
@@ -286,9 +314,7 @@ var takeBinary = function takeBinary(op) {
   var state = session.getState();
   if (state.numString) {
     if (state.terms.length) {
-      if (
-        state.terms[1] !== '/' || standardize(state.numString, true) !== '0'
-      ) {
+      if (!divBy0()) {
         var result = perform();
         if (result.length) {
           state.terms = [standardize(result, true)];
@@ -352,11 +378,7 @@ var takeDel = function takeDel() {
 */
 var takeEqual = function takeEqual() {
   var state = session.getState();
-  if (
-    state.numString
-    && state.terms.length
-    && (state.terms[1] !== '/' || standardize(state.numString, true) !== '0')
-  ) {
+  if (state.numString && state.terms.length && !divBy0()) {
     var result = perform();
     if (result.length) {
       state.terms = [standardize(result, true)];
@@ -393,7 +415,7 @@ var inputRespond = function inputRespond(symbol) {
   else if (['÷', '×', '–', '+'].includes(symbol)) {
     takeBinary(symbol);
   }
-  else if (['+/-', '%'].includes(symbol)) {
+  else if (['+/-', '⅟'].includes(symbol)) {
     takeToggle(symbol);
   }
   else if (symbol === '⌫') {
