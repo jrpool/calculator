@@ -198,7 +198,7 @@ var perform = function perform() {
   var term0 = Number.parseFloat(state.terms[0]);
   var pureNS = pureNumString(state.numString);
   var term1
-    = Number.parseFloat(pureNS[0]) * (pureNS[1] ? term0 : 1);
+    = Number.parseFloat(pureNS[0]) * (pureNS[1] ? term0 / 100 : 1);
   var result;
   if (oldOp === '+') {
     result = term0 + term1;
@@ -227,7 +227,7 @@ var takeToggle = function takeToggle(op) {
     if (op === '+/-') {
       state.numString = invert(state.numString);
     }
-    else if (op === '%') {
+    else if (op === '%' && state.terms.length) {
       state.numString = pctToggle(state.numString);
     }
     else {
@@ -253,7 +253,7 @@ var takeDigit = function takeDigit(digit) {
   }
   else if (state.numString) {
     var bareNS = bareNumString(state.numString);
-    if (bareNS === '0' && digit === '0') {
+    if (bareNS[0] === '0' && digit === '0') {
       return;
     }
     else {
@@ -292,17 +292,17 @@ var takeBinary = function takeBinary(op) {
         var result = perform();
         if (result.length) {
           state.terms = [standardize(result, true)];
+          state.numString = undefined;
+          state.op = op;
         }
       }
     }
     else {
-      state.terms.push(standardize(state.numString, true));
+      state.terms = [standardize(state.numString, true)];
+      state.numString = undefined;
+      state.op = op;
     }
   }
-  else if (!state.op) {
-    return;
-  }
-  state.op = op;
   session.setState(state);
 };
 
