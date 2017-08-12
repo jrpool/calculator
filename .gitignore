@@ -1,3 +1,7 @@
+# Dependency directories
+# https://docs.npmjs.com/cli/shrinkwrap#caveats
+node_modules
+
 # Files specific to OS X
 .DS_Store
 
