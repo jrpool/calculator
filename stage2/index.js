@@ -242,7 +242,7 @@ var perform = function perform() {
 var divBy0 = function divBy0() {
   var state = session.getState();
   return state.terms[1] === '/' && standardize(state.numString, true) === '0';
-}
+};
 
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
