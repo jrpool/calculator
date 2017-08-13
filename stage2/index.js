@@ -206,9 +206,13 @@ var session = (function() {
 var perform = function perform() {
   var state = session.getState();
   var oldOp = state.terms[1];
-  var term0 = Number.parseFloat(state.terms[0]);
+  var pureS0 = pureNumString(state.terms[0]);
+  var term0 = Number.parseFloat(pureS0[0]);
   var pureNS = pureNumString(state.numString);
   var term1 = Number.parseFloat(pureNS[0]);
+  if (pureS0[1]) {
+    term0 = 1 / term0;
+  }
   if (pureNS[1]) {
     if (term1 === 0) {
       return '';
@@ -306,8 +310,11 @@ var takeDigit = function takeDigit(digit) {
       state.numString += digit;
     }
   }
-  else {
+  else if (state.terms.length === 0) {
     state.numString = digit === '.' ? '0.' : digit;
+  }
+  else {
+    return;
   }
   session.setState(state);
 };
