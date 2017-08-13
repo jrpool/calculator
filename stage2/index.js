@@ -119,46 +119,48 @@ var truncate = function truncate(numString) {
 };
 
 /*
-  Define a function that returns a numeric string shortened to impose a
-  specified limit on the count of its decimal digits.
+  Define a function that returns a numeric string, rounded to a specified
+  precision.
 */
-var shorten = function shorten(numString, precision) {
-  var dotIndex = numString.indexOf('.');
-  var decimalLength = numString.length - dotIndex;
-  if (dotIndex === -1 || decimalLength < 4 || decimalLength < precision) {
-    return numString;
+var round = function round(numString, precision) {
+  var decimals = numString.match(/\.(.+)/)[1];
+  if (decimals && decimals.length > precision) {
+    var bareNS = bareNumString(numString);
+    bareNS[0] = Number.parseFloat(bareNS[0]).toFixed(precision);
+    numString = unbare(...bareNS);
   }
-  else {
-    return numString.slice(0, dotIndex + precision) + '…';
-  }
+  return numString;
 };
+
+// Define a function that returns the next precision subscript for the “”
 
 // Define a function that returns a button text that corresponds to a key text.
 var keyToButton = function keyToButton(keyText) {
   var keyToButtonMap = {
-    'Clear': '⌫',
-    'Escape': '⌫',
-    'Dead': '⌫',
-    'Backspace': '⌫',
-    'Enter': '=',
-    '~': '+/-',
-    '\\': '⅟',
     '/': '÷',
     '7': '7',
     '8': '8',
     '9': '9',
+    '`': '±',
     '*': '×',
     '4': '4',
     '5': '5',
     '6': '6',
+    '\\': '⅟',
     '-': '–',
     '1': '1',
     '2': '2',
     '3': '3',
+    'Clear': '⌫',
+    'Escape': '⌫',
+    'Dead': '⌫',
+    'Backspace': '⌫',
     '+': '+',
     '0': '0',
     '.': '.',
     '=': '=',
+    'Enter': '=',
+    '~': '≅'
   };
   return keyToButtonMap[keyText] || '';
 };
@@ -170,14 +172,6 @@ var imputedText = function imputedText(element) {
   var classList = element.className.split(' ');
   if (classList.includes('text')) {
     return element.textContent;
-  }
-  else if (classList.includes('calculator-button-area')) {
-    if (classList.includes('vacant')) {
-      return element.previousElementSibling.firstElementChild.innerText;
-    }
-    else {
-      return element.firstElementChild.innerText;
-    }
   }
   else if (classList.includes('calculator-button')) {
     return element.firstElementChild.innerText;
@@ -201,7 +195,7 @@ var session = (function() {
     numString: '',
     op: undefined,
     terms: [],
-    precision: 3
+    precision: 0
   };
   return {
     getState: function() {return JSON.parse(JSON.stringify(state));},
@@ -277,7 +271,7 @@ var divBy0 = function divBy0() {
 var takeToggle = function takeToggle(op) {
   var state = session.getState();
   if (state.numString) {
-    if (op === '+/-') {
+    if (op === '±') {
       state.numString = invert(state.numString);
     }
     else if (op === '⅟') {
@@ -409,8 +403,8 @@ var takeDel = function takeDel() {
 /*
   Define a function that responds to an equal operator entry. If there is
   a binary operation ready to perform, perform it, making the result the
-  state’s sole committed term and leaving the state with no uncommitted
-  numeric string or operator. Otherwise, do nothing.
+  state’s uncommitted term and leaving the state with no committed term.
+  Otherwise, do nothing.
 */
 var takeEqual = function takeEqual() {
   var state = session.getState();
@@ -425,19 +419,41 @@ var takeEqual = function takeEqual() {
   }
 };
 
+/*
+  Define a function that responds to an approximately-equal operator entry.
+  If there is a binary operation ready to perform, perform it, rounding the
+  result to the current precision, making it the state’s uncommitted term,
+  and leaving the state with no committed term. If there is an uncommitted
+  numeric string, there is no committed term, and the string has more
+  decimal digits than the current precision, round the string to the current
+  precision. Otherwise, advance the state’s precision to its next value.
+*/
+var takeRound = function takeRound() {
+  var state = session.getState();
+  if (state.numString && state.terms.length && !divBy0()) {
+    var roundedResult = round(perform(), state.precision);
+    if (roundedResult.length) {
+      state.numString = standardize(roundedResult, true);
+      state.terms = [];
+      state.op = undefined;
+    }
+  }
+  else if (state.numString && state.terms.length === 0) {
+    state.numString = round(state.numString, state.precision);
+  }
+  else {
+    session.precision = session.precision === 9 ? 0 : session.precision + 1;
+  }
+  session.setState(state);
+};
+
 // /// STATE MODIFICATION: GENERAL /// //
 
-// Define a function that displays the state in the calculator.
-var show = function show() {
+// Define a function that displays the result in the calculator.
+var showResult = function showResult() {
   var state = session.getState();
-  var precision = state.precision;
-  console.log('precision is ' + precision);
-  var termString = state.terms.map(
-    function(value) {return shorten(value, precision);}
-  ).join(' ');
-  console.log('termString is ' + termString);
-  var pendingString = state.op || shorten(state.numString, precision) || '';
-  console.log('pendingString is ' + pendingString);
+  var termString = state.terms.join(' ');
+  var pendingString = state.op || state.numString || '';
   var properString = (termString ? termString + ' ' : '') + pendingString;
   var showableString
     = properString.replace(/⅟/g, '<span class="tight hi">1/</span>');
@@ -449,24 +465,25 @@ var show = function show() {
   resultElement.style.fontSize = sizeSpec;
 };
 
+// Define a function that displays the rounding operator in the calculator.
+var showRound = function showRound() {
+  var state = session.getState();
+  var precisionSymbols = '₀₁₂₃₄₅₆₇₈₉';
+  var roundEl = document.getElementById('round');
+  if (precisionSymbols.indexOf(roundEl.textContent[1]) !== state.precision) {
+    roundEl.textContent = '≅' + precisionSymbols[state.precision];
+  }
+};
+
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  var state = session.getState();
-  if (
-    /^[0-9.]$/.test(symbol)
-    && state.numString
-    && state.numString.length > state.precision
-  ) {
-    state.precision = Math.max(3, state.numString.length);
-  }
-  session.setState(state);
-  if (/^[0-9.⌫]$/.test(symbol)) {
+  if (/^[0-9.]$/.test(symbol)) {
     takeDigit(symbol);
   }
   else if (['÷', '×', '–', '+'].includes(symbol)) {
     takeBinary(symbol);
   }
-  else if (['+/-', '⅟'].includes(symbol)) {
+  else if (['±', '⅟'].includes(symbol)) {
     takeToggle(symbol);
   }
   else if (symbol === '⌫') {
@@ -475,10 +492,15 @@ var inputRespond = function inputRespond(symbol) {
   else if (symbol === '=') {
     takeEqual(symbol);
   }
+  else if (symbol === '≅') {
+    takeRound(symbol);
+    showRound();
+    return;
+  }
   else {
     return;
   }
-  show();
+  showResult();
 };
 
 // Define a function that responds to a button click.
