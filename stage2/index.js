@@ -124,11 +124,12 @@ var truncate = function truncate(numString) {
 */
 var shorten = function shorten(numString, precision) {
   var dotIndex = numString.indexOf('.');
-  if (dotIndex === -1) {
+  var decimalLength = numString.length - dotIndex;
+  if (dotIndex === -1 || decimalLength < 4 || decimalLength < precision) {
     return numString;
   }
   else {
-    return numString.slice(0, dotIndex + precision);
+    return numString.slice(0, dotIndex + precision) + '…';
   }
 };
 
@@ -200,7 +201,7 @@ var session = (function() {
     numString: '',
     op: undefined,
     terms: [],
-    precision: 0
+    precision: 3
   };
   return {
     getState: function() {return JSON.parse(JSON.stringify(state));},
@@ -430,10 +431,13 @@ var takeEqual = function takeEqual() {
 var show = function show() {
   var state = session.getState();
   var precision = state.precision;
+  console.log('precision is ' + precision);
   var termString = state.terms.map(
     function(value) {return shorten(value, precision);}
   ).join(' ');
+  console.log('termString is ' + termString);
   var pendingString = state.op || shorten(state.numString, precision) || '';
+  console.log('pendingString is ' + pendingString);
   var properString = (termString ? termString + ' ' : '') + pendingString;
   var showableString
     = properString.replace(/⅟/g, '<span class="tight hi">1/</span>');
@@ -448,12 +452,15 @@ var show = function show() {
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
   var state = session.getState();
-  state.precision = Math.max(
-    state.terms.length ? state.terms[0].length : 0,
-    state.numString ? state.numString.length : 0
-  );
+  if (
+    /^[0-9.]$/.test(symbol)
+    && state.numString
+    && state.numString.length > state.precision
+  ) {
+    state.precision = Math.max(3, state.numString.length);
+  }
   session.setState(state);
-  if (/^[0-9.]$/.test(symbol)) {
+  if (/^[0-9.⌫]$/.test(symbol)) {
     takeDigit(symbol);
   }
   else if (['÷', '×', '–', '+'].includes(symbol)) {
