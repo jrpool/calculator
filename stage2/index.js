@@ -137,47 +137,44 @@ var round = function round(numString, precision) {
 // Define a function that returns a button text that corresponds to a key text.
 var keyToButton = function keyToButton(keyText) {
   var keyToButtonMap = {
-    '/': '÷',
-    '7': '7',
-    '8': '8',
-    '9': '9',
-    '`': '±',
-    '*': '×',
-    '4': '4',
-    '5': '5',
-    '6': '6',
-    '\\': '⅟',
-    '-': '–',
-    '1': '1',
-    '2': '2',
-    '3': '3',
-    'Clear': '⌫',
-    'Escape': '⌫',
-    'Dead': '⌫',
-    'Backspace': '⌫',
-    '+': '+',
-    '0': '0',
-    '.': '.',
-    '=': '=',
-    'Enter': '=',
-    '~': '≅'
+    '/': 'op/',
+    '7': 'num7',
+    '8': 'num8',
+    '9': 'num9',
+    '`': 'op^',
+    '*': 'op*',
+    '4': 'num4',
+    '5': 'num5',
+    '6': 'num6',
+    '\\': 'op1',
+    '-': 'op-',
+    '1': 'num1',
+    '2': 'num2',
+    '3': 'num3',
+    'Clear': 'op!',
+    'Escape': 'op!',
+    'Dead': 'op!',
+    'Backspace': 'op!',
+    '+': 'op+',
+    '0': 'num0',
+    '.': 'num.',
+    '=': 'op=',
+    'Enter': 'op=',
+    '~': 'op~'
   };
   return keyToButtonMap[keyText] || '';
 };
 
 // /// CALCULATOR INTERROGATION /// //
 
-// Define a function that returns the text imputable to the target of a click.
-var imputedText = function imputedText(element) {
+// Define a function that returns the button imputable to the target of a click.
+var imputedButton = function imputedButton(element) {
   var classList = element.className.split(' ');
   if (classList.includes('text')) {
-    return element.textContent;
+    return element.id;
   }
   else if (classList.includes('calculator-button')) {
-    return element.firstElementChild.innerText;
-  }
-  else if (element.tagName.toLowerCase() === 'span') {
-    return element.parentNode.innerText;
+    return element.firstElementChild.id;
   }
   else {
     return '';
@@ -216,34 +213,34 @@ var session = (function() {
 var perform = function perform() {
   var state = session.getState();
   var oldOp = state.terms[1];
-  var pureS0 = pureNumString(state.terms[0]);
-  var term0 = Number.parseFloat(pureS0[0]);
+  var pureTerm0 = pureNumString(state.terms[0]);
+  var term0Num = Number.parseFloat(pureTerm0[0]);
   var pureNS = pureNumString(state.numString);
-  var term1 = Number.parseFloat(pureNS[0]);
-  if (pureS0[1]) {
-    term0 = 1 / term0;
+  var term1Num = Number.parseFloat(pureNS[0]);
+  if (pureTerm0[1]) {
+    term0Num = 1 / term0Num;
   }
   if (pureNS[1]) {
-    if (term1 === 0) {
+    if (term1Num === 0) {
       return '';
     }
     else {
-      term1 = 1 / term1;
+      term1Num = 1 / term1Num;
     }
   }
   var result;
-  if (oldOp === '+') {
-    result = term0 + term1;
+  if (oldOp === 'op+') {
+    result = term0Num + term1Num;
   }
-  else if (oldOp === '–') {
-    result = term0 - term1;
+  else if (oldOp === 'op-') {
+    result = term0Num - term1Num;
   }
-  else if (oldOp === '×') {
-    result = term0 * term1;
+  else if (oldOp === 'op*') {
+    result = term0Num * term1Num;
   }
   // Precondition: divisor is not 0.
-  else if (oldOp === '÷') {
-    result = term0 / term1;
+  else if (oldOp === 'op/') {
+    result = term0Num / term1Num;
   }
   return typeof result === 'number' ? standardize(result.toString(), true) : '';
 };
@@ -266,22 +263,30 @@ var divBy0 = function divBy0() {
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
 /*
+  Define a function that shows the result in the calculator and saves the
+  state.
+*/
+var finish = function finish(state) {
+  session.setState(state);
+  showResult();
+}
+
+/*
   Define a function that responds to a toggle operator entry.
 */
 var takeToggle = function takeToggle(op) {
   var state = session.getState();
   if (state.numString) {
-    if (op === '±') {
+    if (op === 'op^') {
       state.numString = invert(state.numString);
     }
-    else if (op === '⅟') {
+    else if (op === 'op1') {
       state.numString = recipToggle(state.numString);
     }
     else {
       return;
     }
-    session.setState(state);
-    showResult();
+    finish(state);
   }
 };
 
@@ -293,16 +298,21 @@ var takeToggle = function takeToggle(op) {
   committed or uncommitted term, initialize an uncommitted numeric string.
   Digits are defined as “0”–“9” and “.”.
 */
-var takeDigit = function takeDigit(digit) {
+var takeDigit = function takeDigit(symbol) {
   var state = session.getState();
   var numString = state.numString;
+  var numSymbols = [
+    'num0', 'num1', 'num2', 'num3', 'num4',
+    'num5', 'num6', 'num7', 'num8', 'num9'
+  ];
+  var digitString = numSymbols.indexOf(symbol).toString();
   if (state.op) {
-    state.numString = digit === '.' ? '0.' : digit;
+    state.numString = symbol === 'num.' ? '0.' : digitString;
     state.terms.push(state.op);
     state.op = undefined;
   }
   else if (numString) {
-    if (digit === '.') {
+    if (symbol === 'num.') {
       if (numString.includes('.')) {
         return;
       }
@@ -310,7 +320,7 @@ var takeDigit = function takeDigit(digit) {
         state.numString += '.';
       }
     }
-    else if (digit === '0') {
+    else if (symbol === 'num0') {
       if (standardize(pureNumString(numString)[0], true) === '0') {
         return;
       }
@@ -319,14 +329,13 @@ var takeDigit = function takeDigit(digit) {
       }
     }
     else {
-      state.numString = standardize(state.numString + digit, false);
+      state.numString = standardize(state.numString + digitString, false);
     }
   }
   else {
     state.numString = digit === '.' ? '0.' : digit;
   }
-  session.setState(state);
-  showResult();
+  finish(state);
 };
 
 /*
@@ -341,7 +350,7 @@ var takeDigit = function takeDigit(digit) {
     0. op is a binary operator.
     1. There is at least 1 committed term.
 */
-var takeBinary = function takeBinary(op) {
+var takeBinary = function takeBinary(symbol) {
   var state = session.getState();
   if (state.numString) {
     if (!divBy0()) {
@@ -350,22 +359,20 @@ var takeBinary = function takeBinary(op) {
         if (result.length) {
           state.terms = [standardize(result, true)];
           state.numString = undefined;
-          state.op = op;
+          state.op = symbol;
         }
       }
       else {
         state.terms = [standardize(state.numString, true)];
         state.numString = undefined;
-        state.op = op;
+        state.op = symbol;
       }
-      session.setState(state);
-      showResult();
+      finish(state);
     }
   }
   else if (state.op || state.terms.length) {
-    state.op = op;
-    session.setState(state);
-    showResult();
+    state.op = symbol;
+    finish(state);
   }
 };
 
@@ -401,8 +408,7 @@ var takeDel = function takeDel() {
   else {
     return;
   }
-  session.setState(state);
-  showResult();
+  finish(state);
 };
 
 /*
@@ -419,8 +425,7 @@ var takeEqual = function takeEqual() {
       state.numString = standardize(result, true);
       state.terms = [];
       state.op = undefined;
-      session.setState(state);
-      showResult();
+      finish(state);
     }
   }
 };
@@ -442,14 +447,12 @@ var takeRound = function takeRound() {
       state.numString = standardize(roundedResult, true);
       state.terms = [];
       state.op = undefined;
-      session.setState(state);
-      showResult();
+      finish(state);
     }
   }
   else if (state.numString && state.terms.length === 0) {
     state.numString = round(state.numString, state.precision);
-    session.setState(state);
-    showResult();
+    finish(state);
   }
   else {
     session.precision = session.precision === 9 ? 0 : session.precision + 1;
@@ -491,26 +494,26 @@ var inputRespond = function inputRespond(symbol) {
   if (/^[0-9.]$/.test(symbol)) {
     takeDigit(symbol);
   }
-  else if (['÷', '×', '–', '+'].includes(symbol)) {
+  else if (['op/', 'op*', 'op-', 'op+'].includes(symbol)) {
     takeBinary(symbol);
   }
-  else if (['±', '⅟'].includes(symbol)) {
+  else if (['op^', 'op1'].includes(symbol)) {
     takeToggle(symbol);
   }
-  else if (symbol === '⌫') {
+  else if (symbol === 'op!') {
     takeDel(symbol);
   }
-  else if (symbol === '=') {
+  else if (symbol === 'op=') {
     takeEqual(symbol);
   }
-  else if (symbol === '≅') {
+  else if (symbol === 'op~') {
     takeRound(symbol);
   }
 };
 
 // Define a function that responds to a button click.
 var clickRespond = function clickRespond(event) {
-  inputRespond(imputedText(event.target));
+  inputRespond(imputedButton(event.target));
 };
 
 // Define a function that responds to a keyboard keypress.
