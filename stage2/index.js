@@ -245,7 +245,7 @@ var divBy0 = function divBy0() {
   var state = session.getState();
   var pureNS = pureNumString(state.numString);
   return standardize(pureNS[0], true) === '0' && (
-    state.terms.length === 2 && state.terms[1] === '/' || pureNS[1]
+    state.terms.length === 2 && state.terms[1] === '÷' || pureNS[1]
   );
 };
 
