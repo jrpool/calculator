@@ -145,3 +145,7 @@ section.interactive {
   user-select: none;
   font-family: 'Roboto', sans-serif;
 }
+
+.tight {
+  letter-spacing: -0.1em;
+}

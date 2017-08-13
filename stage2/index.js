@@ -398,11 +398,13 @@ var show = function show() {
   var state = session.getState();
   var termString = Object.values(state.terms).join(' ');
   var pendingString = state.op || state.numString || '';
-  var showableString = (termString ? termString + ' ' : '') + pendingString;
+  var properString = (termString ? termString + ' ' : '') + pendingString;
+  var showableString
+    = properString.replace(/⅟/g, '<span class="tight hi">1/</span>');
   var resultElement = document.getElementById('result');
-  resultElement.innerText = showableString;
+  resultElement.innerHTML = showableString;
   var sizeSpec = (
-    showableString.length > 8 ? Math.ceil(1800 / showableString.length) : 225
+    properString.length > 8 ? Math.ceil(1800 / properString.length) : 225
   ).toString() + '%';
   resultElement.style.fontSize = sizeSpec;
 };
