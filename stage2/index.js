@@ -17,7 +17,7 @@ var bareNumString = function bareNumString(numString) {
   return [
     numString.replace(/^[⅟-]+/, ''),
     numString.startsWith('⅟'),
-    /^⅟?-/.test(numString)
+    numString.includes('-')
   ];
 };
 
@@ -26,7 +26,7 @@ var bareNumString = function bareNumString(numString) {
   bareNumString into a complete numeric string and returns it.
 */
 var unbare = function unbare(bareString, hadRecip, hadMinus) {
-  return (hadRecip ? '⅟' : '') + bareString + (hadMinus ? '-' : '');
+  return (hadRecip ? '⅟' : '') + (hadMinus ? '-' : '') + bareString;
 };
 
 /*
@@ -279,26 +279,35 @@ var takeToggle = function takeToggle(op) {
 */
 var takeDigit = function takeDigit(digit) {
   var state = session.getState();
+  var numString = state.numString;
   if (state.op) {
     state.numString = digit;
     state.terms.push(state.op);
     state.op = undefined;
   }
-  else if (state.numString) {
-    var bareNS = bareNumString(state.numString);
-    if (bareNS[0] === '0' && digit === '0') {
-      return;
+  else if (numString) {
+    if (digit === '.') {
+      if (numString.includes('.')) {
+        return;
+      }
+      else {
+        state.numString += '.';
+      }
+    }
+    else if (digit === '0') {
+      if (standardize(pureNumString(numString)[0], true) === '0') {
+        return;
+      }
+      else {
+        state.numString += '0';
+      }
     }
     else {
-      bareNS[0] += digit;
-      state.numString = standardize(unbare(...bareNS), false);
+      state.numString += digit;
     }
   }
-  else if (!state.terms.length) {
-    state.numString = digit === '.' ? '0.' : digit;
-  }
   else {
-    return;
+    state.numString = digit === '.' ? '0.' : digit;
   }
   session.setState(state);
 };
