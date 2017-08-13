@@ -118,6 +118,20 @@ var truncate = function truncate(numString) {
   }
 };
 
+/*
+  Define a function that returns a numeric string shortened to impose a
+  specified limit on the count of its decimal digits.
+*/
+var shorten = function shorten(numString, precision) {
+  var dotIndex = numString.indexOf('.');
+  if (dotIndex === -1) {
+    return numString;
+  }
+  else {
+    return numString.slice(0, dotIndex + precision);
+  }
+};
+
 // Define a function that returns a button text that corresponds to a key text.
 var keyToButton = function keyToButton(keyText) {
   var keyToButtonMap = {
@@ -185,7 +199,8 @@ var session = (function() {
   var state = {
     numString: '',
     op: undefined,
-    terms: []
+    terms: [],
+    precision: 0
   };
   return {
     getState: function() {return JSON.parse(JSON.stringify(state));},
@@ -410,14 +425,14 @@ var takeEqual = function takeEqual() {
 
 // /// STATE MODIFICATION: GENERAL /// //
 
-/*
-  Define a function that trims the terms of the state and displays the
-  state in the calculator.
-*/
+// Define a function that displays the state in the calculator.
 var show = function show() {
   var state = session.getState();
-  var termString = Object.values(state.terms).join(' ');
-  var pendingString = state.op || state.numString || '';
+  var precision = state.precision;
+  var termString = state.terms.map(
+    function(value) {return shorten(value, precision);}
+  ).join(' ');
+  var pendingString = state.op || shorten(state.numString, precision) || '';
   var properString = (termString ? termString + ' ' : '') + pendingString;
   var showableString
     = properString.replace(/⅟/g, '<span class="tight hi">1/</span>');
@@ -431,6 +446,12 @@ var show = function show() {
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
+  var state = session.getState();
+  state.precision = Math.max(
+    state.terms.length ? state.terms[0].length : 0,
+    state.numString ? state.numString.length : 0
+  );
+  session.setState(state);
   if (/^[0-9.]$/.test(symbol)) {
     takeDigit(symbol);
   }
