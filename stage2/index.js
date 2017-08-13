@@ -419,8 +419,8 @@ var takeEqual = function takeEqual() {
       state.numString = standardize(result, true);
       state.terms = [];
       state.op = undefined;
+      session.setState(state);
     }
-    session.setState(state);
   }
 };
 
