@@ -281,6 +281,7 @@ var takeToggle = function takeToggle(op) {
       return;
     }
     session.setState(state);
+    showResult();
   }
 };
 
@@ -325,6 +326,7 @@ var takeDigit = function takeDigit(digit) {
     state.numString = digit === '.' ? '0.' : digit;
   }
   session.setState(state);
+  showResult();
 };
 
 /*
@@ -357,11 +359,13 @@ var takeBinary = function takeBinary(op) {
         state.op = op;
       }
       session.setState(state);
+      showResult();
     }
   }
   else if (state.op || state.terms.length) {
     state.op = op;
     session.setState(state);
+    showResult();
   }
 };
 
@@ -398,6 +402,7 @@ var takeDel = function takeDel() {
     return;
   }
   session.setState(state);
+  showResult();
 };
 
 /*
@@ -415,6 +420,7 @@ var takeEqual = function takeEqual() {
       state.terms = [];
       state.op = undefined;
       session.setState(state);
+      showResult();
     }
   }
 };
@@ -436,15 +442,20 @@ var takeRound = function takeRound() {
       state.numString = standardize(roundedResult, true);
       state.terms = [];
       state.op = undefined;
+      session.setState(state);
+      showResult();
     }
   }
   else if (state.numString && state.terms.length === 0) {
     state.numString = round(state.numString, state.precision);
+    session.setState(state);
+    showResult();
   }
   else {
     session.precision = session.precision === 9 ? 0 : session.precision + 1;
+    session.setState(state);
+    showRound();
   }
-  session.setState(state);
 };
 
 // /// STATE MODIFICATION: GENERAL /// //
@@ -494,13 +505,7 @@ var inputRespond = function inputRespond(symbol) {
   }
   else if (symbol === '≅') {
     takeRound(symbol);
-    showRound();
-    return;
   }
-  else {
-    return;
-  }
-  showResult();
 };
 
 // Define a function that responds to a button click.
