@@ -37,7 +37,9 @@ var unbare = function unbare(bareString, hadRecip, hadMinus) {
   deleted, (5) “-0” converted to “0”). If the string is not to be committed,
   measures 1 and 2 only, since other invalidities may later disappear if
   more digits are appended.
-  Precondition: numString is not blank.
+  Preconditions:
+    0. numString is not blank.
+    1. numString does not have a reciprocal sign.
 */
 var standardize = function standardize(numString, commit) {
   var bareNS = bareNumString(numString);
@@ -234,14 +236,17 @@ var perform = function perform() {
 
 /*
   Define a function that returns whether a binary operation commitment would
-  be a division by 0.
+  include a division by 0.], either because the operation is division or
+  because the uncommitted number has a reciprocal sign.
   Preconditions:
-    0. state.terms has length 2.
-    1. state.numString exists.
+    0. state.numString exists.
 */
 var divBy0 = function divBy0() {
   var state = session.getState();
-  return state.terms[1] === '/' && standardize(state.numString, true) === '0';
+  var pureNS = pureNumString(state.numString);
+  return standardize(pureNS[0], true) === '0' && (
+    state.terms.length === 2 && state.terms[1] === '/' || pureNS[1]
+  );
 };
 
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
@@ -313,8 +318,8 @@ var takeDigit = function takeDigit(digit) {
 var takeBinary = function takeBinary(op) {
   var state = session.getState();
   if (state.numString) {
-    if (state.terms.length) {
-      if (!divBy0()) {
+    if (!divBy0()) {
+      if (state.terms.length) {
         var result = perform();
         if (result.length) {
           state.terms = [standardize(result, true)];
@@ -322,17 +327,18 @@ var takeBinary = function takeBinary(op) {
           state.op = op;
         }
       }
-    }
-    else {
-      state.terms = [standardize(state.numString, true)];
-      state.numString = undefined;
-      state.op = op;
+      else {
+        state.terms = [standardize(state.numString, true)];
+        state.numString = undefined;
+        state.op = op;
+      }
+      session.setState(state);
     }
   }
   else if (state.op || state.terms.length) {
     state.op = op;
+    session.setState(state);
   }
-  session.setState(state);
 };
 
 /*
