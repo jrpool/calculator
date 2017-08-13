@@ -293,8 +293,9 @@ var takeToggle = function takeToggle(op) {
   Define a function that responds to a digit entry. If there is an uncommitted
   operator, commit it and initialize an uncommitted numeric string. If there
   is an uncommitted numeric string and the digit can validly be appended to
-  it, append it. If there is no committed or uncommitted term, initialize
-  an uncommitted numeric string. Digits are defined as “0”–“9” and “.”.
+  it, append it, replacing a leading “0” if necessary. If there is no
+  committed or uncommitted term, initialize an uncommitted numeric string.
+  Digits are defined as “0”–“9” and “.”.
 */
 var takeDigit = function takeDigit(digit) {
   var state = session.getState();
@@ -322,7 +323,7 @@ var takeDigit = function takeDigit(digit) {
       }
     }
     else {
-      state.numString += digit;
+      state.numString = standardize(state.numString + digit, false);
     }
   }
   else {
