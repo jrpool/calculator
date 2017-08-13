@@ -285,7 +285,7 @@ var takeDigit = function takeDigit(digit) {
   var state = session.getState();
   var numString = state.numString;
   if (state.op) {
-    state.numString = digit;
+    state.numString = digit === '.' ? '0.' : digit;
     state.terms.push(state.op);
     state.op = undefined;
   }
@@ -310,11 +310,8 @@ var takeDigit = function takeDigit(digit) {
       state.numString += digit;
     }
   }
-  else if (state.terms.length === 0) {
-    state.numString = digit === '.' ? '0.' : digit;
-  }
   else {
-    return;
+    state.numString = digit === '.' ? '0.' : digit;
   }
   session.setState(state);
 };
@@ -403,8 +400,9 @@ var takeEqual = function takeEqual() {
   if (state.numString && state.terms.length && !divBy0()) {
     var result = perform();
     if (result.length) {
-      state.terms = [standardize(result, true)];
-      state.op = state.numString = undefined;
+      state.numString = standardize(result, true);
+      state.terms = [];
+      state.op = undefined;
     }
     session.setState(state);
   }
