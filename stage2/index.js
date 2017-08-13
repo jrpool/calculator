@@ -269,7 +269,7 @@ var divBy0 = function divBy0() {
 var finish = function finish(state) {
   session.setState(state);
   showResult();
-}
+};
 
 /*
   Define a function that responds to a toggle operator entry.
@@ -333,7 +333,7 @@ var takeDigit = function takeDigit(symbol) {
     }
   }
   else {
-    state.numString = digit === '.' ? '0.' : digit;
+    state.numString = symbol === '.' ? '0.' : symbol;
   }
   finish(state);
 };
