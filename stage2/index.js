@@ -334,10 +334,9 @@ var takeDigit = function takeDigit(digitSymbol) {
   var state = session.getState();
   var numString = state.numString;
   var digitString = digitButtonToShow(digitSymbol);
-  if (state.op || !numString) {
-    state.numString = digitSymbol === 'num.' ? '0.' : digitString;
-  }
+  var numStringStart = digitSymbol === 'num.' ? '0.' : digitString;
   if (state.op) {
+    state.numString = numStringStart;
     state.terms.push(state.op);
     state.op = undefined;
   }
@@ -361,6 +360,9 @@ var takeDigit = function takeDigit(digitSymbol) {
     else {
       state.numString = standardize(state.numString + digitString, false);
     }
+  }
+  else {
+    state.numString = numStringStart;
   }
   finish(state);
 };
