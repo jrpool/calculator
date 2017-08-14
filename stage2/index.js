@@ -534,10 +534,10 @@ var showRound = function showRound() {
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  if (digitButtonToShow()[symbol]) {
+  if (digitButtonToShow(symbol)) {
     takeDigit(symbol);
   }
-  else if (binaryButtonToShow()[symbol]) {
+  else if (binaryButtonToShow(symbol)) {
     takeBinary(symbol);
   }
   else if (['op^', 'op1'].includes(symbol)) {
