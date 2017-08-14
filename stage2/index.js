@@ -165,6 +165,14 @@ var keyToButton = function keyToButton(keyText) {
   return keyToButtonMap[keyText] || '';
 };
 
+// Define a function that returns the number-key IDs.
+var digitSymbols = function digitSymbols() {
+  return [
+    'num0', 'num1', 'num2', 'num3', 'num4',
+    'num5', 'num6', 'num7', 'num8', 'num9', 'num.'
+  ];
+};
+
 // /// CALCULATOR INTERROGATION /// //
 
 // Define a function that returns the button imputable to the target of a click.
@@ -301,18 +309,16 @@ var takeToggle = function takeToggle(op) {
 var takeDigit = function takeDigit(symbol) {
   var state = session.getState();
   var numString = state.numString;
-  var numSymbols = [
-    'num0', 'num1', 'num2', 'num3', 'num4',
-    'num5', 'num6', 'num7', 'num8', 'num9'
-  ];
-  var digitString = numSymbols.indexOf(symbol).toString();
+  var digitString = digitSymbols().indexOf(symbol).toString();
+  if (state.op || !numString) {
+    state.numString = digitString === '10' ? '0.' : digitString;
+  }
   if (state.op) {
-    state.numString = symbol === 'num.' ? '0.' : digitString;
     state.terms.push(state.op);
     state.op = undefined;
   }
   else if (numString) {
-    if (symbol === 'num.') {
+    if (digitString === '10') {
       if (numString.includes('.')) {
         return;
       }
@@ -320,7 +326,7 @@ var takeDigit = function takeDigit(symbol) {
         state.numString += '.';
       }
     }
-    else if (symbol === 'num0') {
+    else if (digitString === '0') {
       if (standardize(pureNumString(numString)[0], true) === '0') {
         return;
       }
@@ -331,9 +337,6 @@ var takeDigit = function takeDigit(symbol) {
     else {
       state.numString = standardize(state.numString + digitString, false);
     }
-  }
-  else {
-    state.numString = symbol === '.' ? '0.' : symbol;
   }
   finish(state);
 };
@@ -491,7 +494,7 @@ var showRound = function showRound() {
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  if (/^[0-9.]$/.test(symbol)) {
+  if (digitSymbols().includes(symbol)) {
     takeDigit(symbol);
   }
   else if (['op/', 'op*', 'op-', 'op+'].includes(symbol)) {
