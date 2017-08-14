@@ -169,17 +169,36 @@ var keyToButton = function keyToButton(keyText) {
   return keyToButtonMap[keyText] || '';
 };
 
-// Define a function that returns the digit-key IDs.
-var digitSymbols = function digitSymbols() {
-  return [
-    'num0', 'num1', 'num2', 'num3', 'num4',
-    'num5', 'num6', 'num7', 'num8', 'num9', 'num.'
-  ];
+// Define a function that returns a digit string that corresponds to an ID.
+var digitButtonToShow = function digitButtonToShow(digitButtonSymbol) {
+  var digitButtonToShowMap = {
+    'num0': '0',
+    'num1': '1',
+    'num2': '2',
+    'num3': '3',
+    'num4': '4',
+    'num5': '5',
+    'num6': '6',
+    'num7': '7',
+    'num8': '8',
+    'num9': '9',
+    'num.': '.'
+  };
+  return digitButtonToShowMap[digitButtonSymbol] || '';
 };
 
-// Define a function that returns the binary-operator-key IDs.
-var binarySymbols = function binarySymbols() {
-  return ['op/', 'op*', 'op-', 'op+'];
+/*
+  Define a function that returns a binary operator that corresponds to a
+  button symbol.
+*/
+var binaryButtonToShow = function binaryButtonToShow(binaryButtonSymbol) {
+  var binaryButtonToShowMap = {
+    'op/': '÷',
+    'op*': '×',
+    'op-': '–',
+    'op+': '+'
+  };
+  return buttonToShowMap[buttonSymbol] || '';
 };
 
 // Define a function that returns the precision-specifying characters.
@@ -284,19 +303,19 @@ var divBy0 = function divBy0() {
 */
 var finish = function finish(state) {
   session.setState(state);
-  showResult();
+  showMain();
 };
 
 /*
   Define a function that responds to a toggle operator entry.
 */
-var takeToggle = function takeToggle(op) {
+var takeToggle = function takeToggle(opSymbol) {
   var state = session.getState();
   if (state.numString) {
-    if (op === 'op^') {
+    if (opSymbol === 'op^') {
       state.numString = invert(state.numString);
     }
-    else if (op === 'op1') {
+    else if (opSymbol === 'op1') {
       state.numString = recipToggle(state.numString);
     }
     else {
@@ -473,20 +492,39 @@ var takeRound = function takeRound() {
 
 // /// STATE MODIFICATION: GENERAL /// //
 
-// Define a function that displays the result in the calculator.
-var showResult = function showResult() {
+/*
+  Define a function that displays the main facts of the state in the
+  calculator.
+*/
+var showMain = function showMain() {
   var state = session.getState();
-  var termString = state.terms.join(' ');
-  var pendingString = state.op || state.numString || '';
-  var properString = (termString ? termString + ' ' : '') + pendingString;
-  var showableString
-    = properString.replace(/⅟/g, '<span class="tight hi">1/</span>');
-  var resultElement = document.getElementById('result');
-  resultElement.innerHTML = showableString;
+  var binaryMap = binaryButtonToShow();
+  var recipHTML = '<span class="tight hi">1/</span>';
+  var numStringHTML
+    = state.numString ? state.numString.replace(/⅟/g, recipHTML) : '';
+  var term0HTML
+    = state.terms.length ? state.terms[0].replace(/⅟/g, recipHTML) : '';
+  var mainHTML;
+  switch ([
+    state.terms.length, state.numString !== undefined, state.op !== undefined
+  ]) {
+    case [0, false, false]: mainHTML = ''; break;
+    case [0, true, false]: mainHTML = numStringHTML; break;
+    case [1, false, true]:
+      mainHTML = [term0HTML, binaryMap[state.op]].join(' '); break;
+    case [2, true, false]:
+      mainHTML
+        = [term0HTML, binaryMap[state.terms[1]], numStringHTML].join(' ');
+      break;
+  }
+  var mainShowElement = document.getElementById('result');
+  mainShowElement.innerHTML = mainHTML;
   var sizeSpec = (
-    properString.length > 8 ? Math.ceil(1800 / properString.length) : 225
+    mainShowElement.textContent.length > 8
+    ? Math.ceil(1800 / properString.length)
+    : 225
   ).toString() + '%';
-  resultElement.style.fontSize = sizeSpec;
+  mainShowElement.style.fontSize = sizeSpec;
 };
 
 // Define a function that displays the rounding operator in the calculator.
@@ -501,10 +539,10 @@ var showRound = function showRound() {
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  if (digitSymbols().includes(symbol)) {
+  if (digitButtonToShow()[symbol]) {
     takeDigit(symbol);
   }
-  else if (binarySymbols().includes(symbol)) {
+  else if (binaryButtonToShow()[symbol]) {
     takeBinary(symbol);
   }
   else if (['op^', 'op1'].includes(symbol)) {
