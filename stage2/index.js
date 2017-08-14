@@ -182,6 +182,11 @@ var binarySymbols = function binarySymbols() {
   return ['op/', 'op*', 'op-', 'op+'];
 };
 
+// Define a function that returns the precision-specifying characters.
+var precisionChars = function precisionChars() {
+  return '₀₁₂₃₄₅₆₇₈₉';
+};
+
 // /// CALCULATOR INTERROGATION /// //
 
 // Define a function that returns the button imputable to the target of a click.
@@ -245,7 +250,7 @@ var perform = function perform() {
       term1Num = 1 / term1Num;
     }
   }
-  var binaryIndex = binaryTerms().indexOf(oldOp);
+  var binaryIndex = binarySymbols().indexOf(oldOp);
   var result;
   switch (binaryIndex) {
     case 0: result = term0Num / term1Num; break;
@@ -460,7 +465,7 @@ var takeRound = function takeRound() {
     finish(state);
   }
   else {
-    session.precision = session.precision === 9 ? 0 : session.precision + 1;
+    state.precision = state.precision === 9 ? 0 : state.precision + 1;
     session.setState(state);
     showRound();
   }
@@ -487,10 +492,10 @@ var showResult = function showResult() {
 // Define a function that displays the rounding operator in the calculator.
 var showRound = function showRound() {
   var state = session.getState();
-  var precisionSymbols = '₀₁₂₃₄₅₆₇₈₉';
-  var roundEl = document.getElementById('round');
-  if (precisionSymbols.indexOf(roundEl.textContent[1]) !== state.precision) {
-    roundEl.textContent = '≅' + precisionSymbols[state.precision];
+  var precisionSubs = precisionChars();
+  var roundEl = document.getElementById('op~');
+  if (precisionSubs.indexOf(roundEl.textContent[1]) !== state.precision) {
+    roundEl.textContent = '≅' + precisionSubs[state.precision];
   }
 };
 
