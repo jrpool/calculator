@@ -204,6 +204,12 @@ var precisionChars = function precisionChars() {
   return '₀₁₂₃₄₅₆₇₈₉';
 };
 
+// Define a function that returns the HTML of a numeric string.
+var numStringHTML = function numStringHTML(numString) {
+  var recipHTML = '<span class="tight hi">1/</span>';
+  return numString.replace(/⅟/g, recipHTML);
+};
+
 // /// CALCULATOR INTERROGATION /// //
 
 // Define a function that returns the button imputable to the target of a click.
@@ -497,23 +503,20 @@ var takeRound = function takeRound() {
 */
 var showMain = function showMain() {
   var state = session.getState();
-  var binaryMap = binaryButtonToShow();
-  var recipHTML = '<span class="tight hi">1/</span>';
-  var numStringHTML
-    = state.numString ? state.numString.replace(/⅟/g, recipHTML) : '';
-  var term0HTML
-    = state.terms.length ? state.terms[0].replace(/⅟/g, recipHTML) : '';
+  var showNumString = state.numString ? numStringHTML(state.numString) : '';
+  var showTerm0 = state.terms[0] ? numStringHTML(state.terms[0]) : '';
   var mainHTML;
   switch ([
     state.terms.length, state.numString !== undefined, state.op !== undefined
   ]) {
     case [0, false, false]: mainHTML = ''; break;
-    case [0, true, false]: mainHTML = numStringHTML; break;
+    case [0, true, false]: mainHTML = showNumString; break;
     case [1, false, true]:
-      mainHTML = [term0HTML, binaryMap[state.op]].join(' '); break;
+      mainHTML = [showTerm0, binaryButtonToShow(state.op)].join(' '); break;
     case [2, true, false]:
-      mainHTML
-        = [term0HTML, binaryMap[state.terms[1]], numStringHTML].join(' ');
+      mainHTML = [
+        showTerm0, binaryButtonToShow(state.terms[1]), showNumString
+      ].join(' ');
       break;
   }
   var mainShowElement = document.getElementById('result');
