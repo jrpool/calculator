@@ -123,8 +123,12 @@ var truncate = function truncate(numString) {
   precision.
 */
 var round = function round(numString, precision) {
-  var decimals = numString.match(/\.(.+)/)[1];
-  if (decimals && decimals.length > precision) {
+  var decimalMatch = numString.match(/\.(.+)/);
+  if (
+    decimalMatch
+    && decimalMatch.length === 2
+    && decimalMatch[1].length > precision
+  ) {
     var bareNS = bareNumString(numString);
     bareNS[0] = Number.parseFloat(bareNS[0]).toFixed(precision);
     numString = unbare(...bareNS);
@@ -165,12 +169,17 @@ var keyToButton = function keyToButton(keyText) {
   return keyToButtonMap[keyText] || '';
 };
 
-// Define a function that returns the number-key IDs.
+// Define a function that returns the digit-key IDs.
 var digitSymbols = function digitSymbols() {
   return [
     'num0', 'num1', 'num2', 'num3', 'num4',
     'num5', 'num6', 'num7', 'num8', 'num9', 'num.'
   ];
+};
+
+// Define a function that returns the binary-operator-key IDs.
+var binarySymbols = function binarySymbols() {
+  return ['op/', 'op*', 'op-', 'op+'];
 };
 
 // /// CALCULATOR INTERROGATION /// //
@@ -236,19 +245,13 @@ var perform = function perform() {
       term1Num = 1 / term1Num;
     }
   }
+  var binaryIndex = binaryTerms().indexOf(oldOp);
   var result;
-  if (oldOp === 'op+') {
-    result = term0Num + term1Num;
-  }
-  else if (oldOp === 'op-') {
-    result = term0Num - term1Num;
-  }
-  else if (oldOp === 'op*') {
-    result = term0Num * term1Num;
-  }
-  // Precondition: divisor is not 0.
-  else if (oldOp === 'op/') {
-    result = term0Num / term1Num;
+  switch (binaryIndex) {
+    case 0: result = term0Num / term1Num; break;
+    case 1: result = term0Num * term1Num; break;
+    case 2: result = term0Num - term1Num; break;
+    case 3: result = term0Num + term1Num; break;
   }
   return typeof result === 'number' ? standardize(result.toString(), true) : '';
 };
@@ -350,8 +353,7 @@ var takeDigit = function takeDigit(symbol) {
   number, commit it. (By implication, if there is no uncommitted binary
   operator or number, do nothing.)
   Preconditions:
-    0. op is a binary operator.
-    1. There is at least 1 committed term.
+    0. symbol is a binary-key symbol.
 */
 var takeBinary = function takeBinary(symbol) {
   var state = session.getState();
@@ -497,7 +499,7 @@ var inputRespond = function inputRespond(symbol) {
   if (digitSymbols().includes(symbol)) {
     takeDigit(symbol);
   }
-  else if (['op/', 'op*', 'op-', 'op+'].includes(symbol)) {
+  else if (binarySymbols().includes(symbol)) {
     takeBinary(symbol);
   }
   else if (['op^', 'op1'].includes(symbol)) {
