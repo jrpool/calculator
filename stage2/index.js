@@ -136,8 +136,6 @@ var round = function round(numString, precision) {
   return numString;
 };
 
-// Define a function that returns the next precision subscript for the “”
-
 // Define a function that returns a button text that corresponds to a key text.
 var keyToButton = function keyToButton(keyText) {
   var keyToButtonMap = {
@@ -191,14 +189,14 @@ var digitButtonToShow = function digitButtonToShow(digitButtonSymbol) {
   Define a function that returns a binary operator that corresponds to a
   button symbol.
 */
-var binaryButtonToShow = function binaryButtonToShow(binaryButtonSymbol) {
+var binaryButtonToShow = function binaryButtonToShow(binaryOpSymbol) {
   var binaryButtonToShowMap = {
     'op/': '÷',
     'op*': '×',
     'op-': '–',
     'op+': '+'
   };
-  return buttonToShowMap[buttonSymbol] || '';
+  return binaryButtonToShowMap[binaryOpSymbol] || '';
 };
 
 // Define a function that returns the precision-specifying characters.
@@ -269,13 +267,12 @@ var perform = function perform() {
       term1Num = 1 / term1Num;
     }
   }
-  var binaryIndex = binarySymbols().indexOf(oldOp);
   var result;
-  switch (binaryIndex) {
-    case 0: result = term0Num / term1Num; break;
-    case 1: result = term0Num * term1Num; break;
-    case 2: result = term0Num - term1Num; break;
-    case 3: result = term0Num + term1Num; break;
+  switch (oldOp) {
+    case 'op/': result = term0Num / term1Num; break;
+    case 'op*': result = term0Num * term1Num; break;
+    case 'op-': result = term0Num - term1Num; break;
+    case 'op+': result = term0Num + term1Num; break;
   }
   return typeof result === 'number' ? standardize(result.toString(), true) : '';
 };
@@ -333,32 +330,32 @@ var takeToggle = function takeToggle(opSymbol) {
   committed or uncommitted term, initialize an uncommitted numeric string.
   Digits are defined as “0”–“9” and “.”.
 */
-var takeDigit = function takeDigit(symbol) {
+var takeDigit = function takeDigit(digitSymbol) {
   var state = session.getState();
   var numString = state.numString;
-  var digitString = digitSymbols().indexOf(symbol).toString();
+  var digitString = digitButtonToShow(digitSymbol);
   if (state.op || !numString) {
-    state.numString = digitString === '10' ? '0.' : digitString;
+    state.numString = digitSymbol === 'num.' ? '0.' : digitString;
   }
   if (state.op) {
     state.terms.push(state.op);
     state.op = undefined;
   }
   else if (numString) {
-    if (digitString === '10') {
+    if (digitSymbol === 'num.') {
       if (numString.includes('.')) {
         return;
       }
       else {
-        state.numString += '.';
+        state.numString += digitString;
       }
     }
-    else if (digitString === '0') {
+    else if (digitSymbol === 'num0') {
       if (standardize(pureNumString(numString)[0], true) === '0') {
         return;
       }
       else {
-        state.numString += '0';
+        state.numString += digitString;
       }
     }
     else {
@@ -519,11 +516,9 @@ var showMain = function showMain() {
   }
   var mainShowElement = document.getElementById('result');
   mainShowElement.innerHTML = mainHTML;
-  var sizeSpec = (
-    mainShowElement.textContent.length > 8
-    ? Math.ceil(1800 / properString.length)
-    : 225
-  ).toString() + '%';
+  var realLength = mainShowElement.textContent.length;
+  var sizeSpec
+    = (realLength > 8 ? Math.ceil(1800 / realLength): 225).toString() + '%';
   mainShowElement.style.fontSize = sizeSpec;
 };
 
