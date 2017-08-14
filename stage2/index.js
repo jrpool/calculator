@@ -301,6 +301,35 @@ var divBy0 = function divBy0() {
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
 /*
+  Define a function that displays the main facts of the state in the
+  calculator.
+*/
+var showMain = function showMain() {
+  var state = session.getState();
+  var showNumString = state.numString ? numStringHTML(state.numString) : '';
+  var showTerm0 = state.terms[0] ? numStringHTML(state.terms[0]) : '';
+  var mainHTML;
+  console.log('conditions are ' + [state.terms.length, state.numString !== undefined, state.op !== undefined].join(', '));
+  if (!state.terms.length) {
+    mainHTML = state.numString ? showNumString : '';
+  }
+  else if (state.terms.length === 1) {
+    mainHTML = [showTerm0, binaryButtonToShow(state.op)].join(' ');
+  }
+  else {
+    mainHTML = [
+      showTerm0, binaryButtonToShow(state.terms[1]), showNumString
+    ].join(' ');
+  }
+  var mainShowElement = document.getElementById('result');
+  mainShowElement.innerHTML = mainHTML;
+  var realLength = mainShowElement.textContent.length;
+  var sizeSpec
+    = (realLength > 8 ? Math.ceil(1800 / realLength): 225).toString() + '%';
+  mainShowElement.style.fontSize = sizeSpec;
+};
+
+/*
   Define a function that shows the result in the calculator and saves the
   state.
 */
@@ -496,36 +525,6 @@ var takeRound = function takeRound() {
 };
 
 // /// STATE MODIFICATION: GENERAL /// //
-
-/*
-  Define a function that displays the main facts of the state in the
-  calculator.
-*/
-var showMain = function showMain() {
-  var state = session.getState();
-  var showNumString = state.numString ? numStringHTML(state.numString) : '';
-  var showTerm0 = state.terms[0] ? numStringHTML(state.terms[0]) : '';
-  var mainHTML;
-  switch ([
-    state.terms.length, state.numString !== undefined, state.op !== undefined
-  ]) {
-    case [0, false, false]: mainHTML = ''; break;
-    case [0, true, false]: mainHTML = showNumString; break;
-    case [1, false, true]:
-      mainHTML = [showTerm0, binaryButtonToShow(state.op)].join(' '); break;
-    case [2, true, false]:
-      mainHTML = [
-        showTerm0, binaryButtonToShow(state.terms[1]), showNumString
-      ].join(' ');
-      break;
-  }
-  var mainShowElement = document.getElementById('result');
-  mainShowElement.innerHTML = mainHTML;
-  var realLength = mainShowElement.textContent.length;
-  var sizeSpec
-    = (realLength > 8 ? Math.ceil(1800 / realLength): 225).toString() + '%';
-  mainShowElement.style.fontSize = sizeSpec;
-};
 
 // Define a function that displays the rounding operator in the calculator.
 var showRound = function showRound() {
