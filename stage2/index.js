@@ -119,18 +119,20 @@ var truncate = function truncate(numString) {
 };
 
 /*
-  Define a function that returns a numeric string, rounded to a specified
-  precision.
+  Define a function that returns a numeric string, rounded to 9 decimal
+  digits if it has more than 9, to 1 fewer if it has 9 or fewer, or to an
+  integer if it has 1.
+  Precondition: numString is valid (therefore also not blank).
 */
-var round = function round(numString, precision) {
+var round = function round(numString) {
   var decimalMatch = numString.match(/\.(.+)/);
   if (
     decimalMatch
     && decimalMatch.length === 2
-    && decimalMatch[1].length > precision
   ) {
+    var newDecimalCount = Math.min(decimalMatch[1].length - 1, 9);
     var bareNS = bareNumString(numString);
-    bareNS[0] = Number.parseFloat(bareNS[0]).toFixed(precision);
+    bareNS[0] = Number.parseFloat(bareNS[0]).toFixed(newDecimalCount);
     numString = unbare(...bareNS);
   }
   return numString;
@@ -493,18 +495,18 @@ var takeEqual = function takeEqual() {
 };
 
 /*
-  Define a function that responds to an approximately-equal operator entry.
-  If there is a binary operation ready to perform, perform it, rounding the
-  result to the current precision, making it the state’s uncommitted term,
-  and leaving the state with no committed term. If there is an uncommitted
-  numeric string, there is no committed term, and the string has more
-  decimal digits than the current precision, round the string to the current
-  precision. Otherwise, advance the state’s precision to its next value.
+  Define a function that responds to a rounding operator entry. If there is
+  a binary operation ready to perform, perform it, rounding the result to
+  9 decimal digits if it would otherwise be longer, making it the state’s
+  uncommitted term, and leaving the state with no committed term. If there
+  is an uncommitted numeric string, there is no committed term, and the
+  string has any decimal digits, round the string to 1 fewer decimal digit.
+  Otherwise, do nothing.
 */
 var takeRound = function takeRound() {
   var state = session.getState();
   if (state.numString && state.terms.length && !divBy0()) {
-    var roundedResult = round(perform(), state.precision);
+    var roundedResult = round(perform());
     if (roundedResult.length) {
       state.numString = standardize(roundedResult, true);
       state.terms = [];
@@ -513,27 +515,12 @@ var takeRound = function takeRound() {
     }
   }
   else if (state.numString && state.terms.length === 0) {
-    state.numString = round(state.numString, state.precision);
+    state.numString = round(state.numString);
     finish(state);
-  }
-  else {
-    state.precision = state.precision === 9 ? 0 : state.precision + 1;
-    session.setState(state);
-    showRound();
   }
 };
 
 // /// STATE MODIFICATION: GENERAL /// //
-
-// Define a function that displays the rounding operator in the calculator.
-var showRound = function showRound() {
-  var state = session.getState();
-  var precisionSubs = precisionChars();
-  var roundEl = document.getElementById('op~');
-  if (precisionSubs.indexOf(roundEl.textContent[1]) !== state.precision) {
-    roundEl.textContent = '≅' + precisionSubs[state.precision];
-  }
-};
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
