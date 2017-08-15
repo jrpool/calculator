@@ -326,7 +326,7 @@ var showMain = function showMain() {
   mainShowElement.innerHTML = mainHTML;
   var realLength = mainShowElement.textContent.length;
   var sizeSpec
-    = (realLength > 8 ? Math.ceil(1800 / realLength): 225).toString() + '%';
+    = (realLength > 11 ? Math.ceil(2475 / realLength): 225).toString() + '%';
   mainShowElement.style.fontSize = sizeSpec;
 };
 
