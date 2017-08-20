@@ -121,16 +121,16 @@ var truncate = function truncate(numString) {
 /*
   Define a function that returns a numeric string, rounded to 9 decimal
   digits if it has more than 9, to 1 fewer if it has 9 or fewer, or to an
-  integer if it has 1.
+  integer if it has 1 or it ends with a decimal point.
   Precondition: numString is valid (therefore also not blank).
 */
 var round = function round(numString) {
-  var decimalMatch = numString.match(/\.(.+)/);
+  var decimalMatch = numString.match(/\.(.*)/);
   if (
     decimalMatch
     && decimalMatch.length === 2
   ) {
-    var newDecimalCount = Math.min(decimalMatch[1].length - 1, 9);
+    var newDecimalCount = Math.max(0, Math.min(decimalMatch[1].length - 1, 9));
     var bareNS = bareNumString(numString);
     bareNS[0] = Number.parseFloat(bareNS[0]).toFixed(newDecimalCount);
     numString = unbare(...bareNS);

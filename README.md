@@ -25,6 +25,6 @@ Stage 1 constructs a clone of the appearance and aesthetic response of the Calcu
 
 Stage 1: To experience the product of stage 1, open the [stage-1 web page](https://jrpool.github.io/calculator/stage1/) in a web browser, hover over buttons, and click on buttons.
 
-Stage 2: To experience the in-progress product of stage 2, open the [stage-2 web page](https://jrpool.github.io/calculator/stage2/) in a web browser, hover over buttons, and click on buttons. This product is still incomplete.
+Stage 2: To experience the product of stage 2, open the [stage-2 web page](https://jrpool.github.io/calculator/stage2/) in a web browser, hover over buttons, and click on buttons.
 
 [lg]: https://www.learnersguild.org
