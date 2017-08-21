@@ -349,9 +349,9 @@ var setButtons = function setButtons(state) {
   nonNumButtons.equal[1] = state.terms.length === 2 && state.numString;
   nonNumButtons.round[1] = state.numString
     && (state.terms.length === 2 || state.numString.includes('.'));
-  for (buttonType in nonNumButtons) {
+  for (var buttonType in nonNumButtons) {
     var typeButtons = document.getElementsByClassName('button-' + buttonType);
-    for (typeButton of typeButtons) {
+    for (var typeButton of typeButtons) {
       if (nonNumButtons[buttonType][1]) {
         typeButton.classList.remove('button-off');
         typeButton.classList.add('button-on');
