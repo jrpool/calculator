@@ -238,8 +238,7 @@ var session = (function() {
   var state = {
     numString: '',
     op: undefined,
-    terms: [],
-    precision: 0
+    terms: []
   };
   return {
     getState: function() {return JSON.parse(JSON.stringify(state));},
@@ -330,13 +329,49 @@ var showMain = function showMain() {
   mainShowElement.style.fontSize = sizeSpec;
 };
 
+// Define a function that makes all and only eligible buttons responsive.
+var setButtons = function setButtons(state) {
+  var nonNumButtons = {
+    'zero': ['std', true],
+    'dot': ['std', true],
+    'binary': ['op', true],
+    'modifier': ['op', true],
+    'delete': ['op', true],
+    'equal': ['op', true],
+    'round': ['op', true]
+  };
+  nonNumButtons.zero[1]
+    = !state.numString || bareNumString(state.numString)[0] !== '0';
+  nonNumButtons.dot[1] = !state.numString || !state.numString.includes('.');
+  nonNumButtons.binary[1] = state.numString || state.terms.length;
+  nonNumButtons.modifier[1] = state.numString;
+  nonNumButtons.delete[1] = state.numString || state.op || state.terms.length;
+  nonNumButtons.equal[1] = state.terms.length === 2 && state.numString;
+  nonNumButtons.round[1] = state.numString
+    && (state.terms.length === 2 || state.numString.includes('.'));
+  for (buttonType in nonNumButtons) {
+    var typeButtons = document.getElementsByClassName('button-' + buttonType);
+    for (typeButton of typeButtons) {
+      if (nonNumButtons[buttonType][1]) {
+        typeButton.classList.remove('button-off');
+        typeButton.classList.add('button-on');
+      }
+      else {
+        typeButton.classList.remove('button-on');
+        typeButton.classList.add('button-off');
+      }
+    }
+  }
+};
+
 /*
-  Define a function that shows the result in the calculator and saves the
-  state.
+  Define a function that shows the result in the calculator, saves the
+  state, and sets the buttons’ responsivenesses.
 */
 var finish = function finish(state) {
   session.setState(state);
   showMain();
+  setButtons(state);
 };
 
 /*
@@ -386,7 +421,7 @@ var takeDigit = function takeDigit(digitSymbol) {
       }
     }
     else if (digitSymbol === 'num0') {
-      if (standardize(pureNumString(numString)[0], true) === '0') {
+      if (pureNumString(numString)[0] === '0') {
         return;
       }
       else {
