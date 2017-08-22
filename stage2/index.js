@@ -201,11 +201,6 @@ var binaryButtonToShow = function binaryButtonToShow(binaryOpSymbol) {
   return binaryButtonToShowMap[binaryOpSymbol] || '';
 };
 
-// Define a function that returns the precision-specifying characters.
-var precisionChars = function precisionChars() {
-  return '₀₁₂₃₄₅₆₇₈₉';
-};
-
 // Define a function that returns the HTML of a numeric string.
 var numStringHTML = function numStringHTML(numString) {
   var recipHTML = '<span class="tight hi">1/</span>';
@@ -351,14 +346,14 @@ var setButtons = function setButtons(state) {
     && (state.terms.length === 2 || state.numString.includes('.'));
   for (var buttonType in nonNumButtons) {
     var typeButtons = document.getElementsByClassName('button-' + buttonType);
-    for (var typeButton of typeButtons) {
+    for (var i = 0; i < typeButtons.length; i++) {
       if (nonNumButtons[buttonType][1]) {
-        typeButton.classList.remove('button-off');
-        typeButton.classList.add('button-on');
+        typeButtons.item(i).classList.remove('button-off');
+        typeButtons.item(i).classList.add('button-on');
       }
       else {
-        typeButton.classList.remove('button-on');
-        typeButton.classList.add('button-off');
+        typeButtons.item(i).classList.remove('button-on');
+        typeButtons.item(i).classList.add('button-off');
       }
     }
   }
