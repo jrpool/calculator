@@ -10,24 +10,11 @@ var pureNumString = function pureNumString(numString) {
 
 /*
   Define a function that returns a numeric string without a reciprocal or
-  minus sign, whether the string had a reciprocal sign, and whether the
-  string had a minus sign.
-*/
-var bareNumString = function bareNumString(numString) {
-  return [
-    numString.replace(/^[⅟-]+/, ''),
-    numString.startsWith('⅟'),
-    numString.includes('-')
-  ];
-};
-
-/*
-  Define a function that returns a numeric string without a reciprocal or
   minus sign and without a scientific multiplicand, its scientific
   multiplicand if any, whether the string had a reciprocal sign, and whether
   the string had a minus sign.
 */
-var baseNumString = function baseNumString(numString) {
+var parsedNumString = function parsedNumString(numString) {
   return [
     numString.replace(/^[⅟-]+|e.+$/g, ''),
     numString.replace(/^[^e]+/, ''),
@@ -57,31 +44,31 @@ var unbare = function unbare(bareString, hadRecip, hadMinus) {
     1. numString does not have a reciprocal sign.
 */
 var standardize = function standardize(numString, commit) {
-  var bareNS = bareNumString(numString);
-  var bareParts = bareNS[0].split('.');
+  var parsing = parsedNumString(numString);
+  var multiplierParts = parsing[0].split('.');
   // Standardize leading “0”s.
-  if (bareParts.length === 2 && bareParts[0] === '') {
-    bareParts[0] = '0';
+  if (multiplierParts.length === 2 && multiplierParts[0] === '') {
+    multiplierParts[0] = '0';
   }
-  else if (bareParts[0].endsWith('0')) {
-    bareParts[0] = bareParts[0].replace(/^0{2,}/, '0');
+  else if (multiplierParts[0].endsWith('0')) {
+    multiplierParts[0] = multiplierParts[0].replace(/^0{2,}/, '0');
   }
   else {
-    bareParts[0] = bareParts[0].replace(/^0+/, '');
+    multiplierParts[0] = multiplierParts[0].replace(/^0+/, '');
   }
   // Delete trailing decimal “0”s.
-  if (commit && bareParts.length === 2) {
-    bareParts[1] = bareParts[1].replace(/0+$/, '');
-    if (bareParts[1] === '') {
-      bareParts.splice(1);
+  if (commit && multiplierParts.length === 2) {
+    multiplierParts[1] = multiplierParts[1].replace(/0+$/, '');
+    if (multiplierParts[1] === '') {
+      multiplierParts.splice(1);
     }
   }
   // Convert “-0” to “0”.
-  if (commit && bareParts[0] === '0' && bareNS[2]) {
-    bareNS[2] = false;
+  if (commit && multiplierParts[0] === '0' && parsing[3]) {
+    parsing[3] = false;
   }
-  bareNS[0] = bareParts.join('.');
-  return unbare(...bareNS);
+  parsing[0] = multiplierParts.join('.');
+  return unbare(parsing[0] + parsing[1], parsing[2], parsing[3]);
 };
 
 // Define a function that inverts the sign of a numeric string.
@@ -115,21 +102,21 @@ var recipToggle = function recipToggle(numString) {
 };
 
 /*
-  Define a function that returns a numeric string with its last digit
-  (“0”–“9” or “.”) truncated.
+  Define a function that returns a numeric string with the last digit
+  (“0”–“9” or “.”) of its multiplier truncated.
   Precondition: numString contains at least 1 digit.
 */
 var truncate = function truncate(numString) {
-  var bareNS = bareNumString(numString);
-  if (bareNS[0].length === 1) {
+  var parsing = parsedNumString(numString);
+  if (parsing[0].length === 1) {
     return '';
   }
   else {
-    bareNS[0] = bareNS[0].slice(0, -1);
-    if (bareNS[0] === '0' && bareNS[2]) {
-      bareNS[2] = false;
+    parsing[0] = parsing[0].slice(0, -1);
+    if (parsing[0] === '0' && parsing[3]) {
+      parsing[3] = false;
     }
-    return unbare(...bareNS);
+    return unbare(parsing[0] + parsing[1], parsing[2], parsing[3]);
   }
 };
 
@@ -141,16 +128,19 @@ var truncate = function truncate(numString) {
   Precondition: numString is valid (therefore also not blank).
 */
 var round = function round(numString) {
-  var parts = baseNumString(numString);
-  var decimalMatch = parts[0].match(/\.(.*)/);
+  var parsing = parsedNumString(numString);
+  var decimalParsing = parsing[0].match(/\.(.*)/);
   if (
-    decimalMatch
-    && decimalMatch.length === 2
+    decimalParsing
+    && decimalParsing.length === 2
   ) {
-    var newDecimalCount = Math.max(0, Math.min(decimalMatch[1].length - 1, 9));
-    roundedBareNS
-      = Number.parseFloat(parts[0] + parts[1]).toFixed(newDecimalCount);
-    numString = unbare(roundedBareNS, parts[2], parts[3]);
+    var newDecimalCount
+      = Math.max(0, Math.min(decimalParsing[1].length - 1, 9));
+    var newMultiplierString
+      = Number.parseFloat(parsing[0]).toFixed(newDecimalCount);
+    var roundedBareNS
+      = Number.parseFloat(newMultiplierString + parsing[1]).toString();
+    numString = unbare(roundedBareNS, parsing[2], parsing[3]);
   }
   return numString;
 };
@@ -228,11 +218,10 @@ var numStringHTML = function numStringHTML(numString) {
 
 // Define a function that returns the button imputable to the target of a click.
 var imputedButton = function imputedButton(element) {
-  var classList = element.className.split(' ');
-  if (classList.includes('text')) {
+  if (element.classList.contains('text')) {
     return element.id;
   }
-  else if (classList.includes('calculator-button')) {
+  else if (element.classList.contains('button')) {
     return element.firstElementChild.id;
   }
   else {
@@ -353,7 +342,7 @@ var setButtons = function setButtons(state) {
     'round': ['op', true]
   };
   nonNumButtons.zero[1]
-    = !state.numString || bareNumString(state.numString)[0] !== '0';
+    = !state.numString || parsedNumString(state.numString)[0] !== '0';
   nonNumButtons.dot[1] = !state.numString || !state.numString.includes('.');
   nonNumButtons.binary[1] = state.numString || state.terms.length;
   nonNumButtons.modifier[1] = state.numString;
