@@ -15,7 +15,7 @@ The demonstration takes the form of an arithmetic calculator.
 
 The application fulfills a variation on the requirements of the “Mac Calculator Clone” exercise of the “JavaScript in the Browser” module in Phase 2 of the [Learners Guild][lg] curriculum. The exercise requires cloning the functionality of the Macintosh OS X operating system’s “Calculator” application, but this application modifies that functionality. The intent is to make a calculator with superior functionality and a more intuitive interface.
 
-The exercise builds the application in 3 stages.
+The exercise builds the application in 2 stages.
 
 Stage 1 constructs a clone of the appearance and aesthetic response of the Calculator application of the Macintosh OS X operating system. The calculator responds to hovering and to clicks by darkening the target elements. Its appearance and response are produced by HTML and CSS code. The calculator does not calculate.
 
