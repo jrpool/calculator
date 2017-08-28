@@ -110,9 +110,8 @@ var round = function round(numString, decimalsMax) {
   var parsed = parse(cleaned);
   var dotIndex = parsed[0].indexOf('.');
   if (dotIndex > -1) {
-    parsed[0] = Math.parseFloat(
-      parsed[0], Math.min(decimalsMax, parsed[0].length - dotIndex -2)
-    );
+    parsed[0] = Number.parseFloat(parsed[0])
+      .toFixed(Math.min(decimalsMax, parsed[0].length - dotIndex -2));
   }
   return unparse(parsed);
 };
@@ -372,7 +371,7 @@ var takeBinary = function takeBinary(state, symbol) {
   uncommitted term and there is a committed term, uncommit it.
 */
 var takeDel = function takeDel(state) {
-  if (state.contingentButtons.del[1]) {
+  if (state.contingentButtons.delete[1]) {
     if (state.numString) {
       state.numString = digitPop(state.numString);
       if (!state.numString.length) {
