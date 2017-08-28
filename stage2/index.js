@@ -67,6 +67,7 @@ var clean = function clean(numString, commit) {
     // 5
     if (parsed[2]) {
       parsed[0] = (1 / Number.parseFloat(parsed[0] + parsed[1])).toString();
+      parsed[2] = false;
     }
   }
   return unparse(parsed);
@@ -248,7 +249,8 @@ var showState = function showState(state) {
   views.push(state.numString ? htmlOf(state.numString) : '');
   views.push(state.op ? opOf(state.op) : '');
   var viewElement = document.getElementById('result');
-  viewElement.innerHTML = views.filter(view => view.length).join(' ');
+  viewElement.innerHTML
+    = views.filter(function(view) {return view.length;}).join(' ');
   var viewLength = viewElement.textContent.length;
   viewElement.style.fontSize
     = (viewLength > 11 ? Math.ceil(2475 / viewLength): 225).toString() + '%';
@@ -321,13 +323,23 @@ var takeModifier = function takeModifier(state, symbol) {
   }
 };
 
-/*
-  Define a function that responds to a digit (“0”–“9” or “.”) entry.
-  Precondition: the digit is not “0” or “.” if that is an invalid entry.
-*/
+// Define a function that responds to a digit (“0”–“9” or “.”) entry.
 var takeDigit = function takeDigit(state, symbol) {
-  if (symbol !== 'num.' || state.contingentButtons.dot[1]) {
-    state.numString = clean(digitPush(state.numString, symbol), false);
+  if (
+    (symbol !== 'num.' || state.contingentButtons.dot[1])
+    && (symbol !== 'num0' || state.contingentButtons.zero[1])
+  ) {
+    if (state.numString) {
+      state.numString
+        = clean(digitPush(state.numString, symbol), false);
+    }
+    else {
+      state.numString = clean(digitOf(symbol), false);
+      if (state.op) {
+        state.terms.push(state.op);
+        state.op = undefined;
+      }
+    }
     finish(state);
   }
 };
