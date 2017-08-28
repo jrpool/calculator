@@ -244,9 +244,9 @@ var perform = function perform(state) {
 var showState = function showState(state) {
   var views = [];
   views.push(state.terms[0] ? htmlOf(state.terms[0]) : '');
-  views.push(state.terms[1] ? buttonOf(state.terms[1]) : '');
+  views.push(state.terms[1] ? opOf(state.terms[1]) : '');
   views.push(state.numString ? htmlOf(state.numString) : '');
-  views.push(state.op ? buttonOf(state.op) : '');
+  views.push(state.op ? opOf(state.op) : '');
   var viewElement = document.getElementById('result');
   viewElement.innerHTML = views.filter(view => view.length).join(' ');
   var viewLength = viewElement.textContent.length;
