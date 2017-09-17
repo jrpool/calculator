@@ -1,4 +1,5 @@
 # calculator
+
 Web application implementing a calculator.
 
 ## Project Members
@@ -20,6 +21,8 @@ The exercise builds the application in 2 stages.
 Stage 1 constructs a clone of the appearance and aesthetic response of the Calculator application of the Macintosh OS X operating system. The calculator responds to hovering and to clicks by darkening the target elements. Its appearance and response are produced by HTML and CSS code. The calculator does not calculate.
 
 Stage 2 adds JavaScript code to make the calculator perform calculating operations in response to user actions. Stage 2 also changes the layout of the calculator and the set of its buttons. It also changes the appearance of the buttons, making them dim and inert when the state of the calculator makes them ineligible for use.
+
+There is a [more detailed discussion](http://stulta.com/forumo/archives/2089) of this variation and its motivation.
 
 ### Implementation
 
