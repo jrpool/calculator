@@ -1,5 +1,3 @@
-@import '../normalize.css';
-
 * {
   box-sizing: border-box;
 }
@@ -90,6 +88,10 @@
   height: 24%;
 }
 
+h1, h2 {
+  margin: 0;
+}
+
 .hi {
   vertical-align: super;
 }
@@ -149,6 +151,8 @@ main {
   transform: translateY(-50%);
   user-select: none;
   font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: normal;
 }
 
 .tight {
