@@ -462,7 +462,10 @@ var inputRespond = function inputRespond(symbol) {
 
 // Define a function that responds to a button click.
 var clickRespond = function clickRespond(event) {
+  var viewElement = document.getElementById('result');
+  console.log('Before clickRespond viewElement is ' + viewElement.outerHTML);
   inputRespond(realTargetOf(event.target));
+  console.log('After clickRespond viewElement is ' + viewElement.outerHTML);
 };
 
 // Define a function that responds to a keyboard keypress.
@@ -473,5 +476,5 @@ var keyRespond = function keyRespond(event) {
 // /// EXECUTION /// //
 
 // Event listeners
-document.getElementById('buttons0').addEventListener('click', clickRespond);
+document.getElementById('buttons').addEventListener('click', clickRespond);
 window.addEventListener('keydown', keyRespond);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zxx">
+<html lang="en">
 
   <head>
     <meta charset="utf-8">
@@ -14,82 +14,161 @@
 
   <body>
     <main>
-      <section class="calculator" id="calc0">
-        <section class="displayonly t-round">
-          <div class="row row-tall result t-round">
-            <h1 class="text" id="result"></h1>
-          </div>
+      <section class="calculator" id="calculator" title="calculator">
+        <section class="displayonly t-round" title="result">
+          <div id="result" class="row row-tall t-round text"></div>
         </section>
-        <section class="interactive b-round" id="buttons0">
-          <div class="row row-short">
-            <div class="button button-off button-op button-binary">
-              <h2 class="text c" id="op/">÷</h2>
+        <section class="interactive b-round" title="buttons">
+          <form id="buttons" title="buttons">
+            <div class="row row-short">
+              <button
+                id="op/"
+                class="button button-off button-op button-binary text c"
+                title="division—operator"
+              >
+                ÷
+              </button>
+              <button
+                id="num7"
+                class="button button-on button-std button-num text c"
+                title="seven—number"
+              >
+                7
+              </button>
+              <button
+                id="num8"
+                class="button button-on button-std button-num text c"
+                title="eight—number"
+              >
+                8
+              </button>
+              <button
+                id="num9"
+                class="button button-on button-std button-num text c"
+                title="nine—number"
+              >
+                9
+              </button>
+              <button
+                id="op^"
+                class="button button-off button-op button-modifier text c"
+                title="invert—sign—operator"
+              >
+                ±
+              </button>
             </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num7">7</h2>
+            <div class="row row-short">
+              <button
+                id="op*"
+                class="button button-off button-op button-binary text c"
+                title="operator—multiplication"
+              >
+                ×
+              </button>
+              <button
+                id="num4"
+                class="button button-on button-std button-num text c"
+                title="four—number"
+              >
+                4
+              </button>
+              <button
+                id="num5"
+                class="button button-on button-std button-num text c"
+                title="five—number"
+              >
+                5
+              </button>
+              <button
+                id="num6"
+                class="button button-on button-std button-num text c"
+                title="six—number"
+              >
+                6
+              </button>
+              <button
+                id="op1"
+                class="button button-off button-op button-modifier text c"
+              >
+                ⅟
+              </button>
             </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num8">8</h2>
+            <div class="row row-short">
+              <button
+                id="op-"
+                class="button button-off button-op button-binary text c"
+                title="operator—subtraction"
+              >
+                –
+              </button>
+              <button
+                id="num1"
+                class="button button-on button-std button-num text c"
+                title="one—number"
+              >
+                1
+              </button>
+              <button
+                id="num2"
+                class="button button-on button-std button-num text c"
+                title="two—number"
+              >
+                2
+              </button>
+              <button
+                id="num3"
+                class="button button-on button-std button-num text c"
+                title="three—number"
+              >
+                3
+              </button>
+              <button
+                id="op!"
+                class="button button-off button-op button-delete text c"
+                title="delete—last—character—operator"
+              >
+                ⌫
+              </button>
             </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num9">9</h2>
+            <div class="row row-short">
+              <button
+                id="op+"
+                class
+                  ="button button-off button-op button-binary bl-round text c"
+                title="operator—addition"
+              >
+                +
+              </button>
+              <button
+                id="num0"
+                class="button button-on button-std button-zero text c"
+                title="zero—number"
+              >
+                0
+              </button>
+              <button
+                id="num."
+                class="button button-on button-std button-dot text c"
+                title="point—decimal"
+              >
+                .
+              </button>
+              <button
+                id="op="
+                class="button button-off button-op button-equal text c"
+                title="equal—operator"
+              >
+                =
+              </button>
+              <button
+                id="op~"
+                class="button button-off button-op button-round br-round text c"
+                title="approximation—operator"
+              >
+                ≅
+              </button>
             </div>
-            <div class="button button-off button-op button-modifier">
-              <h2 class="text c" id="op^">±</h2>
-            </div>
-          </div>
-          <div class="row row-short">
-            <div class="button button-off button-op button-binary">
-              <h2 class="text c" id="op*">×</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num4">4</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num5">5</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num6">6</h2>
-            </div>
-            <div class="button button-off button-op button-modifier">
-              <h2 class="text c" id="op1">⅟</h2>
-            </div>
-          </div>
-          <div class="row row-short">
-            <div class="button button-off button-op button-binary">
-              <h2 class="text c" id="op-">–</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num1">1</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num2">2</h2>
-            </div>
-            <div class="button button-on button-std button-num">
-              <h2 class="text c" id="num3">3</h2>
-            </div>
-            <div class="button button-off button-op button-delete">
-              <h2 class="text c" id="op!">⌫</h2>
-            </div>
-          </div>
-          <div class="row row-short">
-            <div
-              class="button button-off button-op button-binary bl-round"><h2
-                class="text c" id="op+">+</h2>
-            </div>
-            <div class="button button-on button-std button-zero">
-              <h2 class="text c" id="num0">0</h2>
-            </div>
-            <div class="button button-on button-std button-dot">
-              <h2 class="text c" id="num.">.</h2>
-            </div>
-            <div class="button button-off button-op button-equal">
-              <h2 class="text c" id="op=">=</h2>
-            </div>
-            <div class="button button-off button-op button-round br-round"><h2
-              class="text c" id="op~">≅</h2>
-            </div>
-          </div>
+          </form>
         </section>
       </section>
     </main>

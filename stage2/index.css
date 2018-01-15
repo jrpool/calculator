@@ -39,6 +39,16 @@
   width: 20%;
 }
 
+.button,
+.button-area {
+  float: left;
+  height: 100%;
+}
+
+.row-tall {
+  height: 100%;
+}
+
 .button-off,
 .button-off:active,
 .button-off:hover {
@@ -56,12 +66,6 @@
 
 .button-on:active {
   opacity: 0.4;
-}
-
-.button,
-.button-area {
-  float: left;
-  height: 100%;
 }
 
 .button-op {
@@ -88,8 +92,9 @@
   height: 24%;
 }
 
-h1, h2 {
-  margin: 0;
+form {
+  height: 100%;
+  width: 100%;
 }
 
 .hi {
@@ -122,9 +127,6 @@ main {
   font-size: 225%;
   text-align: right;
   padding-right: .9rem;
-}
-
-.result {
   background-color: darkgray;
 }
 
@@ -134,11 +136,10 @@ main {
 
 .row-short {
   height: 25%;
-  font-size: large;
 }
 
-.row-tall {
-  height: 100%;
+.row-short .text {
+  font-size: large;
 }
 
 .t-round {
@@ -152,7 +153,7 @@ main {
   user-select: none;
   font-family: 'Roboto', sans-serif;
   font-style: normal;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 .tight {
