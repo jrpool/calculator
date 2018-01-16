@@ -439,24 +439,26 @@ var takeRound = function takeRound(state) {
 
 // Define a function that responds to a button or key input.
 var inputRespond = function inputRespond(symbol) {
-  var state = session.getState();
-  if (digitOf(symbol)) {
-    takeDigit(state, symbol);
-  }
-  else if (opOf(symbol)) {
-    takeBinary(state, symbol);
-  }
-  else if (['op^', 'op1'].includes(symbol)) {
-    takeModifier(state, symbol);
-  }
-  else if (symbol === 'op!') {
-    takeDel(state);
-  }
-  else if (symbol === 'op=') {
-    takeEqual(state);
-  }
-  else if (symbol === 'op~') {
-    takeRound(state);
+  if (symbol) {
+    var state = session.getState();
+    if (digitOf(symbol)) {
+      takeDigit(state, symbol);
+    }
+    else if (opOf(symbol)) {
+      takeBinary(state, symbol);
+    }
+    else if (['op^', 'op1'].includes(symbol)) {
+      takeModifier(state, symbol);
+    }
+    else if (symbol === 'op!') {
+      takeDel(state);
+    }
+    else if (symbol === 'op=') {
+      takeEqual(state);
+    }
+    else if (symbol === 'op~') {
+      takeRound(state);
+    }
   }
 };
 
