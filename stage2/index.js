@@ -462,10 +462,7 @@ var inputRespond = function inputRespond(symbol) {
 
 // Define a function that responds to a button click.
 var clickRespond = function clickRespond(event) {
-  var viewElement = document.getElementById('result');
-  console.log('Before clickRespond viewElement is ' + viewElement.outerHTML);
   inputRespond(realTargetOf(event.target));
-  console.log('After clickRespond viewElement is ' + viewElement.outerHTML);
 };
 
 // Define a function that responds to a keyboard keypress.
