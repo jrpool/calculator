@@ -1,12 +1,17 @@
 // /// STRING MANIPULATION /// //
 
 /*
-  Define a function that returns, for a numeric string, (0) its multiplier
-  without a reciprocal or minus sign, (1) its multiplicand or '' if none,
-  (2) whether the string had a reciprocal sign, and (3) whether the string
-  had a minus sign.
+  With a “digit” being a character matching /[0-9.]/ and a numeric string
+  consisting of optional prefixes (“–”, “⅟”, or “–⅟”), a multiplier (digits),
+  and an optional multiplicand (“e” followed by digits), define a function
+  that returns, for a numeric string:
+    (0) its multiplier
+    (1) its multiplicand
+    (2) whether the string has a reciprocal prefix (“⅟”)
+    (3) whether the string has a negation prefix (“–”)
+  E.g., for '–⅟123.45e12' return ['123.45', 'e12', true, true].
 */
-var parse = function parse(numString) {
+var parse = function(numString) {
   return [
     numString.replace(/^[⅟-]+|e.+$/g, ''),
     numString.replace(/^[^e]+/, ''),
@@ -19,7 +24,7 @@ var parse = function parse(numString) {
   Define a function that returns the numeric string from which a parsing
   resulted.
 */
-var unparse = function unparse(parsed) {
+var unparse = function(parsed) {
   return (parsed[2] ? '⅟' : '')
     + (parsed[3] ? '-' : '')
     + parsed[0]
@@ -28,11 +33,11 @@ var unparse = function unparse(parsed) {
 
 /*
   Define a function that returns a standardized or semistandardized
-  numeric string, depending on whether the string is to be committed.
-  If so, standardized; if not, semistandardized.
+  numeric string, depending on whether the string is or is not to be committed,
+  respectively.
     Semistandardization is:
-      0. Delete any leading “0”s before a whole-number digit.
-      1. Prepend “0” before any leading “.” of the multiplier.
+      0. If the string starts with “0” and a digit follows it, delete the “0”.
+      1. If the string starts with “.”, prepend “0” to it.
     Standardization is semistandardization plus:
       2. Delete post-“.” trailing “0”s of the multiplier.
       3. Convert any “-0” of the multiplier to “0”.
@@ -42,7 +47,7 @@ var unparse = function unparse(parsed) {
     0. numString is not blank.
     1. numString is valid.
 */
-var clean = function clean(numString, commit) {
+var clean = function(numString, commit) {
   var parsed = parse(numString);
   var dotParsed = parsed[0].split('.');
   // 0
@@ -77,7 +82,7 @@ var clean = function clean(numString, commit) {
   Define a function that returns a numeric string with the specified prefix
   toggled. Precondition: numString is valid.
 */
-var toggledOf = function toggledOf(numString, prefix) {
+var toggledOf = function(numString, prefix) {
   var parsed = parse(numString);
   var prefixIndex = 2 + ['reciprocal', 'minus'].indexOf(prefix);
   parsed[prefixIndex] = !parsed[prefixIndex];
@@ -85,12 +90,11 @@ var toggledOf = function toggledOf(numString, prefix) {
 };
 
 /*
-  Define a function that returns a numeric string with the last digit
-  (“0”–“9” or “.”) of its multiplier removed and, if the removal leaves
-  it empty, with its prefixes deleted. Precondition: numString contains at
-  least 1 digit.
+  Define a function that returns a numeric string with the last digit of its
+  multiplier removed and, if the removal leaves it empty, with its prefixes
+  deleted. Precondition: numString contains at least 1 digit.
 */
-var digitPop = function digitPop(numString) {
+var digitPop = function(numString) {
   var parsed = parse(numString);
   if (parsed[0].length === 1) {
     return '';
@@ -106,7 +110,7 @@ var digitPop = function digitPop(numString) {
   its multiplier rounded down by 1 decimal digit, subject to a maximum count
   of decimal digits. Precondition: numString is valid.
 */
-var round = function round(numString, decimalsMax) {
+var round = function(numString, decimalsMax) {
   var cleaned = clean(numString, true);
   var parsed = parse(cleaned);
   var dotIndex = parsed[0].indexOf('.');
@@ -121,7 +125,7 @@ var round = function round(numString, decimalsMax) {
   Define a function that returns a button symbol that corresponds to a key
   text, or an empty string if none.
 */
-var buttonOf = function buttonOf(keyText) {
+var buttonOf = function(keyText) {
   var keyButtonMap = {
     '/': 'op/',
     '7': 'num7',
@@ -154,19 +158,19 @@ var buttonOf = function buttonOf(keyText) {
 /*
   Define a function that returns a digit button’s symbol’s digit as a string.
 */
-var digitOf = function digitOf(symbol) {
+var digitOf = function(symbol) {
   return symbol.startsWith('num') ? symbol.slice(-1) : '';
 };
 
 /*
   Define a function that returns a binary button’s symbol’s operator.
 */
-var opOf = function opOf(symbol) {
+var opOf = function(symbol) {
   return '÷×–+'['/*-+'.indexOf(symbol.slice(-1))] || '';
 };
 
 // Define a function that returns the HTML of a numeric string.
-var htmlOf = function htmlOf(numString) {
+var htmlOf = function(numString) {
   return numString.replace(/⅟/g, '<span class="tight hi">1/</span>');
 };
 
@@ -174,7 +178,7 @@ var htmlOf = function htmlOf(numString) {
   Define a function that returns a numeric string with a digit appended to
   the multiplier. Precondition: symbol is a digit symbol.
 */
-var digitPush = function digitPush(numString, symbol) {
+var digitPush = function(numString, symbol) {
   var parsed = parse(numString);
   parsed[0] += digitOf(symbol);
   return unparse(parsed);
@@ -183,10 +187,10 @@ var digitPush = function digitPush(numString, symbol) {
 // /// CALCULATOR INTERROGATION /// //
 
 /*
-  Define a function that returns the button imputable to the target of a click,
+  Define a function that returns the button imputable as the target of a click,
   or an empty string if none.
 */
-var realTargetOf = function realTargetOf(element) {
+var realTargetOf = function(element) {
   if (element.classList.contains('text')) {
     return element.id;
   }
@@ -200,7 +204,17 @@ var realTargetOf = function realTargetOf(element) {
 
 // /// STATE INTERROGATION /// //
 
-// Define an object with methods that get and set the document’s state.
+/*
+  Define a local object representing the document’s state and global methods
+  that get and set the state. Initialize the state’s properties:
+    numString: the current uncommitted number as a string.
+    op: the current uncommitted binary operator as a string.
+    terms: the current result as an array of a committed number and a
+      committed binary operator.
+    contingentButtons: an object with properties describing the volatile
+      buttons, each having as its value an array of the button class (“std”
+      for gray or “op” for orange) and whether the button is now enabled.
+*/
 var session = (function() {
   var state = {
     numString: '',
@@ -226,7 +240,7 @@ var session = (function() {
   Define a function that returns, as a string, the result of a binary
   operation on the committed terms and the uncommitted number.
 */
-var perform = function perform(state) {
+var perform = function(state) {
   var num0 = Number.parseFloat(clean(state.terms[0], true));
   var num1 = Number.parseFloat(clean(state.numString, true));
   var result;
@@ -242,7 +256,7 @@ var perform = function perform(state) {
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
 // Define a function that displays the state in the calculator.
-var showState = function showState(state) {
+var showState = function(state) {
   var views = [];
   views.push(state.terms[0] ? htmlOf(state.terms[0]) : '');
   views.push(state.terms[1] ? opOf(state.terms[1]) : '');
@@ -257,7 +271,7 @@ var showState = function showState(state) {
 };
 
 // Define a function that makes all and only eligible buttons responsive.
-var setButtons = function setButtons(state) {
+var setButtons = function(state) {
   state.contingentButtons.zero[1]
     = !state.numString || parse(state.numString)[0] !== '0';
   state.contingentButtons.dot[1]
@@ -289,7 +303,7 @@ var setButtons = function setButtons(state) {
   Define a function that shows the state in the calculator, saves the state,
   and sets the buttons’ responsivenesses.
 */
-var finish = function finish(state) {
+var finish = function(state) {
   session.setState(state);
   showState(state);
   setButtons(state);
@@ -299,7 +313,7 @@ var finish = function finish(state) {
   Define a function that modifies the state in accord with the result of
   a binary operation.
 */
-var finishResult = function finishResult(state, result) {
+var finishResult = function(state, result) {
   if (result.length) {
     state.numString = clean(result, true);
     state.terms = [];
@@ -313,7 +327,7 @@ var finishResult = function finishResult(state, result) {
     0. The symbol is a modifier symbol.
     1. There is a valid numString.
 */
-var takeModifier = function takeModifier(state, symbol) {
+var takeModifier = function(state, symbol) {
   if (state.contingentButtons.modifier[1]) {
     state.numString = toggledOf(state.numString, {
       'op^': 'minus',
@@ -324,14 +338,13 @@ var takeModifier = function takeModifier(state, symbol) {
 };
 
 // Define a function that responds to a digit (“0”–“9” or “.”) entry.
-var takeDigit = function takeDigit(state, symbol) {
+var takeDigit = function(state, symbol) {
   if (
     (symbol !== 'num.' || state.contingentButtons.dot[1])
     && (symbol !== 'num0' || state.contingentButtons.zero[1])
   ) {
     if (state.numString) {
-      state.numString
-        = clean(digitPush(state.numString, symbol), false);
+      state.numString = clean(digitPush(state.numString, symbol), false);
     }
     else {
       state.numString = clean(digitOf(symbol), false);
@@ -351,7 +364,7 @@ var takeDigit = function takeDigit(state, symbol) {
   If there are no committed terms but there is an uncommitted number, commit
   it. Precondition: symbol is a binary operator symbol.
 */
-var takeBinary = function takeBinary(state, symbol) {
+var takeBinary = function(state, symbol) {
   if (state.contingentButtons.binary[1]) {
     if (state.numString) {
       if (state.terms.length) {
@@ -382,7 +395,7 @@ var takeBinary = function takeBinary(state, symbol) {
   an uncommitted binary operator, delete it. If the deletion deletes the
   uncommitted term and there is a committed term, uncommit it.
 */
-var takeDel = function takeDel(state) {
+var takeDel = function(state) {
   if (state.contingentButtons.delete[1]) {
     if (state.numString) {
       state.numString = digitPop(state.numString);
@@ -407,7 +420,7 @@ var takeDel = function takeDel(state) {
   the result the state’s uncommitted term, leaving the state with no
   committed term. Precondition: There are 2 terms and an uncommitted number.
 */
-var takeEqual = function takeEqual(state) {
+var takeEqual = function(state) {
   if (state.contingentButtons.equal[1]) {
     finishResult(state, perform(state));
   }
@@ -421,7 +434,7 @@ var takeEqual = function takeEqual(state) {
   is an uncommitted numeric string, there is no committed term, and the
   string has any decimal digits, round the string to 1 fewer decimal digit.
 */
-var takeRound = function takeRound(state) {
+var takeRound = function(state) {
   if (state.contingentButtons.round[1]) {
     if (state.numString) {
       if (state.terms.length) {
@@ -437,8 +450,8 @@ var takeRound = function takeRound(state) {
 
 // /// STATE MODIFICATION: GENERAL /// //
 
-// Define a function that responds to a button or key input.
-var inputRespond = function inputRespond(symbol) {
+// Define a utility for the event handlers.
+var inputRespond = function(symbol) {
   var state = session.getState();
   if (digitOf(symbol)) {
     takeDigit(state, symbol);
@@ -460,18 +473,18 @@ var inputRespond = function inputRespond(symbol) {
   }
 };
 
-// Define a function that responds to a button click.
-var clickRespond = function clickRespond(event) {
+// Define an event handler for a mouse click.
+var clickRespond = function(event) {
   inputRespond(realTargetOf(event.target));
 };
 
-// Define a function that responds to a keyboard keypress.
-var keyRespond = function keyRespond(event) {
+// Define an event handler for a keyboard keypress.
+var keyRespond = function(event) {
   inputRespond(buttonOf(event.key));
 };
 
 // /// EXECUTION /// //
 
-// Event listeners
+// Create event listeners
 document.getElementById('buttons').addEventListener('click', clickRespond);
 window.addEventListener('keydown', keyRespond);
