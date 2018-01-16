@@ -480,7 +480,10 @@ var clickRespond = function(event) {
 
 // Define an event handler for a keyboard keypress.
 var keyRespond = function(event) {
-  inputRespond(buttonOf(event.key));
+  var symbol = buttonOf(event.key);
+  if (symbol) {
+    inputRespond(symbol);
+  }
 };
 
 // /// EXECUTION /// //
