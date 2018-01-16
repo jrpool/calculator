@@ -1,10 +1,15 @@
 // /// STRING MANIPULATION /// //
 
 /*
-  Define a function that returns, for a numeric string, (0) its multiplier
-  without a reciprocal or minus sign, (1) its multiplicand or '' if none,
-  (2) whether the string had a reciprocal sign, and (3) whether the string
-  had a minus sign.
+  With a “digit” being a character matching /[0-9.]/ and a numeric string
+  consisting of optional prefixes (“–”, “⅟”, or “–⅟”), a multiplier (digits),
+  and an optional multiplicand (“e” followed by digits), define a function
+  that returns, for a numeric string:
+    (0) its multiplier
+    (1) its multiplicand
+    (2) whether the string has a reciprocal prefix (“⅟”)
+    (3) whether the string has a negation prefix (“–”)
+  E.g., for '–⅟123.45e12' return ['123.45', 'e12', true, true].
 */
 var parse = function parse(numString) {
   return [
@@ -28,11 +33,11 @@ var unparse = function unparse(parsed) {
 
 /*
   Define a function that returns a standardized or semistandardized
-  numeric string, depending on whether the string is to be committed.
-  If so, standardized; if not, semistandardized.
+  numeric string, depending on whether the string is or is not to be committed,
+  respectively.
     Semistandardization is:
-      0. Delete any leading “0”s before a whole-number digit.
-      1. Prepend “0” before any leading “.” of the multiplier.
+      0. If the string starts with “0” and a digit follows it, delete the “0”.
+      1. If the string starts with “.”, prepend “0” to it.
     Standardization is semistandardization plus:
       2. Delete post-“.” trailing “0”s of the multiplier.
       3. Convert any “-0” of the multiplier to “0”.
@@ -85,10 +90,9 @@ var toggledOf = function toggledOf(numString, prefix) {
 };
 
 /*
-  Define a function that returns a numeric string with the last digit
-  (“0”–“9” or “.”) of its multiplier removed and, if the removal leaves
-  it empty, with its prefixes deleted. Precondition: numString contains at
-  least 1 digit.
+  Define a function that returns a numeric string with the last digit of its
+  multiplier removed and, if the removal leaves it empty, with its prefixes
+  deleted. Precondition: numString contains at least 1 digit.
 */
 var digitPop = function digitPop(numString) {
   var parsed = parse(numString);
@@ -183,7 +187,7 @@ var digitPush = function digitPush(numString, symbol) {
 // /// CALCULATOR INTERROGATION /// //
 
 /*
-  Define a function that returns the button imputable to the target of a click,
+  Define a function that returns the button imputable as the target of a click,
   or an empty string if none.
 */
 var realTargetOf = function realTargetOf(element) {
@@ -200,7 +204,17 @@ var realTargetOf = function realTargetOf(element) {
 
 // /// STATE INTERROGATION /// //
 
-// Define an object with methods that get and set the document’s state.
+/*
+  Define a local object representing the document’s state and global methods
+  that get and set the state. Initialize the state’s properties:
+    numString: the current uncommitted number as a string.
+    op: the current uncommitted binary operator as a string.
+    terms: the current result as an array of a committed number and a
+      committed binary operator.
+    contingentButtons: an object with properties describing the volatile
+      buttons, each having as its value an array of the button class (“std”
+      for gray or “op” for orange) and whether the button is now enabled.
+*/
 var session = (function() {
   var state = {
     numString: '',
@@ -323,7 +337,7 @@ var takeModifier = function takeModifier(state, symbol) {
   }
 };
 
-// Define a function that responds to a digit (“0”–“9” or “.”) entry.
+// Define a function that responds to a digit entry.
 var takeDigit = function takeDigit(state, symbol) {
   if (
     (symbol !== 'num.' || state.contingentButtons.dot[1])
@@ -403,7 +417,8 @@ var takeDel = function takeDel(state) {
 };
 
 /*
-  Define a function that responds to an equal operator entry. Perform the binary operation specified by the terms and uncommitted number and make
+  Define a function that responds to an equal operator entry. Perform the
+  binary operation specified by the terms and uncommitted number and make
   the result the state’s uncommitted term, leaving the state with no
   committed term. Precondition: There are 2 terms and an uncommitted number.
 */
@@ -437,7 +452,7 @@ var takeRound = function takeRound(state) {
 
 // /// STATE MODIFICATION: GENERAL /// //
 
-// Define a function that responds to a button or key input.
+// Define a utility for the event handlers.
 var inputRespond = function inputRespond(symbol) {
   if (symbol) {
     var state = session.getState();
@@ -462,18 +477,18 @@ var inputRespond = function inputRespond(symbol) {
   }
 };
 
-// Define a function that responds to a button click.
+// Define an event handler for a mouse click.
 var clickRespond = function clickRespond(event) {
   inputRespond(realTargetOf(event.target));
 };
 
-// Define a function that responds to a keyboard keypress.
+// Define an event handler for a keyboard keypress.
 var keyRespond = function keyRespond(event) {
   inputRespond(buttonOf(event.key));
 };
 
 // /// EXECUTION /// //
 
-// Event listeners
+// Create event listeners
 document.getElementById('buttons0').addEventListener('click', clickRespond);
 window.addEventListener('keydown', keyRespond);
