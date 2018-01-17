@@ -1,11 +1,33 @@
 // /// DEFINITIONS /// //
 
 /*
-  digit: a character matching /[0-9.]/.
-  numString: a string that concatenates 3 segments:
-    prefixes (optional): “–”, “⅟”, or “–⅟”.
-    multiplier: 1 or more digits.
-    multiplicand (optional): “e” followed by 1 or more digits.
+  numChar: a character matching /[0-9.]/.
+  Negative prefix: “–”.
+  Reciprocal prefix: “⅟”.
+  numString: a string that concatenates 4 segments:
+    negative prefix (optional).
+    reciprocal prefix (optional).
+    multiplier: 1 or more numChars.
+    multiplicand (optional): “e” followed by 1 or more numChars.
+  cleanNumString: a numString whose multiplier does not begin with '0'
+    immediately followed by another digit and does not begin with “.”
+  finalNumString: a cleanNumString that has:
+    1. No reciprocal prefix.
+    2. No multiplier starting with “-0”.
+    3. No post-“.” trailing “0”s in the multiplier.
+    4. No trailing “.” in the multiplier.
+  code: a unique identifier of a button.
+  state: an object representing the information eligible for manipulation,
+    containing 4 properties:
+      currentNum: a numString being composed.
+      op: the code of a binary operator .
+      terms: the current result as an array of a committed numString and a
+        committed binary operator code.
+      contingentButtons: an object with properties describing the volatile
+        buttons, each having as its value an array of the button class (“std”
+        for gray or “op” for orange) and whether the button is now enabled.
+  stateString: a string
+  opChar: the character representing a binary operator in
 */
 
 // /// STRING MANIPULATION /// //
@@ -27,10 +49,7 @@ var parse = function(numString) {
   ];
 };
 
-/*
-  Define a function that returns the numeric string from which a parsing
-  resulted.
-*/
+// Define a function that returns the numString from which a parsing resulted.
 var unparse = function(parsed) {
   return (parsed[2] ? '⅟' : '')
     + (parsed[3] ? '-' : '')
@@ -39,44 +58,28 @@ var unparse = function(parsed) {
 };
 
 /*
-  Define a function that returns a standardized or semistandardized
-  numeric string, depending on whether the string is or is not to be committed,
-  respectively.
-    Semistandardization is:
-      0. If the string starts with “0” and a digit follows it, delete the “0”.
-      1. If the string starts with “.”, prepend “0” to it.
-    Standardization is semistandardization plus:
-      2. Delete post-“.” trailing “0”s of the multiplier.
-      3. Convert any “-0” of the multiplier to “0”.
-      4. Delete any trailing “.” of the multiplier.
-      5. Perform any reciprocal operation on the number.
-  Preconditions:
+  Define a function that converts a numString to a cleanNumString or a
+  finalNumString. Preconditions:
     0. numString is not blank.
     1. numString is valid.
 */
-var clean = function(numString, commit) {
+var clean = function(numString, toFinal) {
   var parsed = parse(numString);
   var dotParsed = parsed[0].split('.');
-  // 0
   dotParsed[0] = dotParsed[0].replace(/^0+(?=\d)/, '');
-  // 1
   if (!dotParsed[0].length) {
     dotParsed[0] = '0';
   }
-  if (!commit) {
+  if (!toFinal) {
     parsed[0] = dotParsed.join('.');
   }
   else {
     if (dotParsed.length === 1) {
       dotParsed.push('');
     }
-    // 2
     dotParsed[1] = dotParsed[1].replace(/0+$/, '');
-    // 3
     parsed[0] = parsed[0].replace(/^-0/, '0');
-    // 4
     parsed[0] = dotParsed[0] + (dotParsed[1].length ? '.' + dotParsed[1] : '');
-    // 5
     if (parsed[2]) {
       parsed[0] = (1 / Number.parseFloat(parsed[0] + parsed[1])).toString();
       parsed[2] = false;
@@ -86,8 +89,8 @@ var clean = function(numString, commit) {
 };
 
 /*
-  Define a function that returns a numeric string with the specified prefix
-  toggled. Precondition: numString is valid.
+  Define a function that returns a numString with the specified prefix toggled.
+  Precondition: numString is valid.
 */
 var toggledOf = function(numString, prefix) {
   var parsed = parse(numString);
@@ -97,11 +100,11 @@ var toggledOf = function(numString, prefix) {
 };
 
 /*
-  Define a function that returns a numeric string with the last digit of its
+  Define a function that returns a numString with the last numChar of its
   multiplier removed and, if the removal leaves it empty, with its prefixes
-  deleted. Precondition: numString contains at least 1 digit.
+  deleted. Precondition: numString contains at least 1 numChar.
 */
-var digitPop = function(numString) {
+var numCharPop = function(numString) {
   var parsed = parse(numString);
   if (parsed[0].length === 1) {
     return '';
@@ -113,9 +116,9 @@ var digitPop = function(numString) {
 };
 
 /*
-  Define a function that returns a numeric string, standardized and with
-  its multiplier rounded down by 1 decimal digit, subject to a maximum count
-  of decimal digits. Precondition: numString is valid.
+  Define a function that returns a numString, standardized and with its
+  multiplier rounded down by 1 decimal digit, subject to a maximum count of
+  decimal digits. Precondition: numString is valid.
 */
 var round = function(numString, decimalsMax) {
   var cleaned = clean(numString, true);
@@ -164,9 +167,9 @@ var buttonOf = function(keyText) {
 };
 
 /*
-  Define a function that returns a digit button’s code’s digit as a string.
+  Define a function that returns a numChar button’s code’s numChar as a string.
 */
-var digitOf = function(code) {
+var numCharOf = function(code) {
   return code.startsWith('num') ? code.slice(-1) : '';
 };
 
@@ -177,18 +180,18 @@ var opCharOf = function(code) {
   return '÷×–+'['/*-+'.indexOf(code.slice(-1))] || '';
 };
 
-// Define a function that returns the HTML of a numeric string.
+// Define a function that returns the HTML of a numString.
 var htmlOf = function(numString) {
   return numString.replace(/⅟/g, '<span class="tight hi">1/</span>');
 };
 
 /*
-  Define a function that returns a numeric string with a digit appended to
-  the multiplier. Precondition: code is a digit code.
+  Define a function that returns a numString with a numChar appended to the
+  multiplier. Precondition: code is a numChar code.
 */
-var digitPush = function(numString, code) {
+var numCharPush = function(numString, code) {
   var parsed = parse(numString);
-  parsed[0] += digitOf(code);
+  parsed[0] += numCharOf(code);
   return unparse(parsed);
 };
 
@@ -215,13 +218,6 @@ var realTargetOf = function(element) {
 /*
   Define a local object representing the document’s state and global methods
   that get and set the state. Initialize the state’s properties:
-    numString: the current uncommitted number as a string.
-    op: the current uncommitted binary operator as a string.
-    terms: the current result as an array of a committed number and a
-      committed binary operator.
-    contingentButtons: an object with properties describing the volatile
-      buttons, each having as its value an array of the button class (“std”
-      for gray or “op” for orange) and whether the button is now enabled.
 */
 var session = (function() {
   var state = {
@@ -355,17 +351,17 @@ var takeModifier = function(state, code) {
   }
 };
 
-// Define a function that responds to a digit (“0”–“9” or “.”) entry.
+// Define a function that responds to a numChar (“0”–“9” or “.”) entry.
 var takeDigit = function(state, code) {
   if (
     (code !== 'num.' || state.contingentButtons.dot[1])
     && (code !== 'num0' || state.contingentButtons.zero[1])
   ) {
     if (state.numString) {
-      state.numString = clean(digitPush(state.numString, code), false);
+      state.numString = clean(numCharPush(state.numString, code), false);
     }
     else {
-      state.numString = clean(digitOf(code), false);
+      state.numString = clean(numCharOf(code), false);
       if (state.op) {
         state.terms.push(state.op);
         state.op = undefined;
@@ -426,7 +422,7 @@ var takeBinary = function(state, code) {
 var takeDel = function(state) {
   if (state.contingentButtons.delete[1]) {
     if (state.numString) {
-      state.numString = digitPop(state.numString);
+      state.numString = numCharPop(state.numString);
       if (!state.numString.length) {
         state.numString = undefined;
         if (state.terms.length) {
@@ -459,8 +455,8 @@ var takeEqual = function(state) {
   a binary operation ready to perform, perform it, rounding the result to
   9 decimal digits if it would otherwise be longer, making it the state’s
   uncommitted term, and leaving the state with no committed term. If there
-  is an uncommitted numeric string, there is no committed term, and the
-  string has any decimal digits, round the string to 1 fewer decimal digit.
+  is an uncommitted numString, there is no committed term, and the string
+  has any decimal digits, round the string to 1 fewer decimal digit.
 */
 var takeRound = function(state) {
   if (state.contingentButtons.round[1]) {
@@ -481,7 +477,7 @@ var takeRound = function(state) {
 // Define a utility for the event handlers.
 var inputRespond = function(code) {
   var state = session.getState();
-  if (digitOf(code)) {
+  if (numCharOf(code)) {
     takeDigit(state, code);
   }
   else if (opCharOf(code)) {
