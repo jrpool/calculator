@@ -1,14 +1,21 @@
+// /// DEFINITIONS /// //
+
+/*
+  digit: a character matching /[0-9.]/.
+  numString: a string that concatenates 3 segments:
+    prefixes (optional): “–”, “⅟”, or “–⅟”.
+    multiplier: 1 or more digits.
+    multiplicand (optional): “e” followed by 1 or more digits.
+*/
+
 // /// STRING MANIPULATION /// //
 
 /*
-  With a “digit” being a character matching /[0-9.]/ and a numeric string
-  consisting of optional prefixes (“–”, “⅟”, or “–⅟”), a multiplier (digits),
-  and an optional multiplicand (“e” followed by digits), define a function
-  that returns, for a numeric string:
+  Define a function that returns, for a numString:
     (0) its multiplier
     (1) its multiplicand
-    (2) whether the string has a reciprocal prefix (“⅟”)
-    (3) whether the string has a negation prefix (“–”)
+    (2) whether it has a reciprocal prefix (“⅟”)
+    (3) whether it has a negation prefix (“–”)
   E.g., for '–⅟123.45e12' return ['123.45', 'e12', true, true].
 */
 var parse = function(numString) {
