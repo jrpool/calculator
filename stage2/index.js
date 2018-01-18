@@ -78,11 +78,13 @@ var clean = function(numString, toFinal) {
       dotParsed.push('');
     }
     dotParsed[1] = dotParsed[1].replace(/0+$/, '');
-    parsed[0] = parsed[0].replace(/^-0/, '0');
     parsed[0] = dotParsed[0] + (dotParsed[1].length ? '.' + dotParsed[1] : '');
     if (parsed[2]) {
       parsed[0] = (1 / Number.parseFloat(parsed[0] + parsed[1])).toString();
       parsed[2] = false;
+    }
+    if (parsed[3] && parsed[0] === '0') {
+      parsed[3] = false;
     }
   }
   return unparse(parsed);
@@ -154,7 +156,6 @@ var buttonOf = function(keyText) {
     '3': 'num3',
     'Clear': 'op!',
     'Escape': 'op!',
-    'Dead': 'op!',
     'Backspace': 'op!',
     '+': 'op+',
     '0': 'num0',
