@@ -1,12 +1,11 @@
 // /// STRING MANIPULATION /// //
 
 /*
-  Define a function that returns, for numString:
+  Define a function that returns an analysis of a numString, i.e. an array of:
     (0) its multiplier
     (1) its multiplicand
-    (2) whether it has a reciprocal prefix (“⅟”)
-    (3) whether it has a negation prefix (“–”)
-  E.g., for '–⅟123.45e12' return ['123.45', 'e12', true, true].
+    (2) whether it has an inverter
+    (3) whether it has a negator
 */
 var parse = function(numString) {
   return [
@@ -17,45 +16,43 @@ var parse = function(numString) {
   ];
 };
 
-// Define a function that returns the numString from which a parsing resulted.
-var unparse = function(parsed) {
-  return (parsed[2] ? '⅟' : '')
-    + (parsed[3] ? '-' : '')
-    + parsed[0]
-    + parsed[1];
+// Define a function that returns the numString of an analysis.
+var unparse = function(analysis) {
+  return (analysis[2] ? '⅟' : '')
+    + (analysis[3] ? '-' : '')
+    + analysis[0]
+    + analysis[1];
 };
 
 /*
-  Define a function that converts a numString to a cleanNumString or a
-  finalNumString. Preconditions:
-    0. numString is not blank.
-    1. numString is valid.
+  Define a function that enforces the restriction on a valid, nonblank
+  numString or terms[0].
 */
-var clean = function(numString, toFinal) {
-  var parsed = parse(numString);
-  var dotParsed = parsed[0].split('.');
-  dotParsed[0] = dotParsed[0].replace(/^0+(?=\d)/, '');
-  if (!dotParsed[0].length) {
-    dotParsed[0] = '0';
+var clean = function(string, isTerm) {
+  var analysis = parse(string);
+  var digitGroups = analysis[0].split('.');
+  digitGroups[0] = digitGroups[0].replace(/^0+(?=\d)/, '');
+  if (!digitGroups[0].length) {
+    digitGroups[0] = '0';
   }
   if (!toFinal) {
-    parsed[0] = dotParsed.join('.');
+    analysis[0] = digitGroups.join('.');
   }
   else {
-    if (dotParsed.length === 1) {
-      dotParsed.push('');
+    if (digitGroups.length === 1) {
+      digitGroups.push('');
     }
     dotParsed[1] = dotParsed[1].replace(/0+$/, '');
-    parsed[0] = dotParsed[0] + (dotParsed[1].length ? '.' + dotParsed[1] : '');
-    if (parsed[2]) {
-      parsed[0] = (1 / Number.parseFloat(parsed[0] + parsed[1])).toString();
-      parsed[2] = false;
+    analysis[0] = dotParsed[0] + (dotParsed[1].length ? '.' + dotParsed[1] : '');
+    if (analysis[2]) {
+      analysis[0] = (1 / Number.parseFloat(analysis[0] + analysis[1])).toString();
+      analysis[2] = false;
     }
-    if (parsed[3] && parsed[0] === '0') {
-      parsed[3] = false;
+    if (analysis[3] && analysis[0] === '0') {
+      analysis[3] = false;
     }
   }
-  return unparse(parsed);
+  return unparse(analysis);
 };
 
 /*
