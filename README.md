@@ -41,21 +41,22 @@ At any time, the application is in some _state_. The state is the facts that the
 - _terms_: an array of 0, 1, or 2 elements. If it has a first element (`terms[0]`), that is a string representing a number. If it also has a second element (`terms[1]`), that is the string `+`, `-`, `×`, or `÷`.
 - _volatiles_: an array of data about inputs that cannot always be performed.
 
-The format of any string representing a number, i.e. `numString` or `terms[0]`, is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _inverter_). Such a string must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
+The format of any `numString` is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _inverter_). Such a string must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
+
+In a `numString` the multiplier cannot begin with '0' immediately followed by another digit, and also cannot contain “.” before its first digit. So, the application converts `0056` to `56`, and it converts `.5` to `0.5`.
+
+A `term[0]` has the same format as a `numString`, except that:
+
+- There must not be an inverter. The application calculates the reciprocal and displays that instead.
+- There must not be a negator if the multiplier is `0`. The application deletes the negator in that case.
+- There must not be trailing `0`s in the multiplier after a decimal point.
+- There must not be a decimal point in the multiplier unless there is at least 1 digit after it.
+
+Numbers in scientific notation (i.e. with `e`) cannot be directly input. They arise automatically in very large or very small results.
 
 Some inputs, namely the digits 0 to 9, are performable in every state. All the other inputs are volatile: Whether they can be performed depends on the values of `numString`, `binaryOp`, and `terms`. For each volatile input, the `volatiles` property specifies whether it can currently be performed. For example, if the state is empty, the only performable volatile is the decimal point. If you then enter a digit, 7 more volatiles (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
 
 The state is always displayed in the calculator. The `terms` elements and the `numString` or `binaryOp` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `volatiles` are displayed by means of the buttons’ appearances: bright if enabled, and dim if disabled.
-
-The application imposes some restrictions on the formats of strings representing numbers.
-
-- If it is `numString`, then its multiplier cannot begin with '0'
-  immediately followed by another digit, and also cannot contain “.” before its first digit. So, the application converts `0056` to `56`, and it converts `.5` to `0.5`.
-- If it is `terms[0]`, there are additional restrictions:
-    - No inverter. The application calculates the reciprocal and displays that.
-    - No negator if the multiplier is `0`. The application deletes the negator in that case.
-  3. No trailing `0`s in the multiplier after a decimal point.
-  4. No decimal point in either the multiplier or the multiplicand unless there is at least 1 digit after it.
 
 The `op^` input, performed with the `±` button or the`` ` ``key, toggles the presence of a negator in `numString`.
 

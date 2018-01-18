@@ -16,7 +16,7 @@ var parse = function(numString) {
   ];
 };
 
-// Define a function that returns the numString of an analysis.
+// Define a function that returns a numString of an analysis.
 var unparse = function(analysis) {
   return (analysis[2] ? '⅟' : '')
     + (analysis[3] ? '-' : '')
@@ -25,7 +25,7 @@ var unparse = function(analysis) {
 };
 
 /*
-  Define a function that enforces the restriction on a valid, nonblank
+  Define a function that enforces the restrictions on a valid, nonblank
   numString or terms[0].
 */
 var clean = function(string, isTerm) {
@@ -35,15 +35,14 @@ var clean = function(string, isTerm) {
   if (!digitGroups[0].length) {
     digitGroups[0] = '0';
   }
-  if (!toFinal) {
-    analysis[0] = digitGroups.join('.');
-  }
-  else {
+  if (isTerm) {
     if (digitGroups.length === 1) {
       digitGroups.push('');
     }
-    dotParsed[1] = dotParsed[1].replace(/0+$/, '');
-    analysis[0] = dotParsed[0] + (dotParsed[1].length ? '.' + dotParsed[1] : '');
+    digitGroups[1] = digitGroups[1].replace(/0+$/, '');
+    analysis[0] = digitGroups[0] + (
+      digitGroups[1].length ? '.' + digitGroups[1] : ''
+    );
     if (analysis[2]) {
       analysis[0] = (1 / Number.parseFloat(analysis[0] + analysis[1])).toString();
       analysis[2] = false;
@@ -52,55 +51,55 @@ var clean = function(string, isTerm) {
       analysis[3] = false;
     }
   }
+  else {
+    analysis[0] = digitGroups.join('.');
+  }
+  return unparse(analysis);
+};
+
+// Define a function that toggles the negator or inverter of a numString.
+var toggledOf = function(numString, prefix) {
+  var analysis = parse(numString);
+  var prefixIndex = 2 + ['-', '⅟'].indexOf(prefix);
+  parsed[prefixIndex] = !analysis[prefixIndex];
   return unparse(analysis);
 };
 
 /*
-  Define a function that returns a numString with the specified prefix toggled.
-  Precondition: numString is valid.
+  Define a function that returns a `numString` with the last character of its
+  multiplier removed and, if the removal leaves it empty, with any inverter
+  or negator deleted.
 */
-var toggledOf = function(numString, prefix) {
-  var parsed = parse(numString);
-  var prefixIndex = 2 + ['reciprocal', 'minus'].indexOf(prefix);
-  parsed[prefixIndex] = !parsed[prefixIndex];
-  return unparse(parsed);
-};
-
-/*
-  Define a function that returns a numString with the last numChar of its
-  multiplier removed and, if the removal leaves it empty, with its prefixes
-  deleted. Precondition: numString contains at least 1 numChar.
-*/
-var numCharPop = function(numString) {
-  var parsed = parse(numString);
-  if (parsed[0].length === 1) {
+var charPop = function(numString) {
+  var analysis = parse(numString);
+  if (analysis[0].length === 1) {
     return '';
   }
   else {
-    parsed[0] = parsed[0].slice(0, -1);
-    return unparse(parsed);
+    analysis[0] = analysis[0].slice(0, -1);
+    return unparse(analysis);
   }
 };
 
 /*
-  Define a function that returns a numString, standardized and with its
-  multiplier rounded down by 1 decimal digit, subject to a maximum count of
-  decimal digits. Precondition: numString is valid.
+  Define a function that returns a `numString`, formatted as a `term[0]` and
+  with its multiplier rounded down by 1 decimal digit, subject to a maximum
+  count of decimal digits.
 */
 var round = function(numString, decimalsMax) {
-  var cleaned = clean(numString, true);
-  var parsed = parse(cleaned);
-  var dotIndex = parsed[0].indexOf('.');
+  var cleanedString = clean(numString, true);
+  var analysis = parse(cleanedString);
+  var dotIndex = analysis[0].indexOf('.');
   if (dotIndex > -1) {
-    parsed[0] = Number.parseFloat(parsed[0])
-      .toFixed(Math.min(decimalsMax, parsed[0].length - dotIndex -2));
+    analysis[0] = Number.parseFloat(analysis[0])
+      .toFixed(Math.min(decimalsMax, analysis[0].length - dotIndex -2));
   }
-  return unparse(parsed);
+  return unparse(analysis);
 };
 
 /*
-  Define a function that returns a button code that corresponds to a key
-  text, or an empty string if none.
+  Define a function that returns an input code that corresponds to a key text,
+  or an empty string if none.
 */
 var buttonOf = function(keyText) {
   var keyButtonMap = {
@@ -133,40 +132,41 @@ var buttonOf = function(keyText) {
 };
 
 /*
-  Define a function that returns a numChar button’s code’s numChar as a string.
+  Define a function that converts an input code to the character that it
+  represents.
 */
-var numCharOf = function(code) {
-  return code.startsWith('num') ? code.slice(-1) : '';
-};
-
-/*
-  Define a function that returns a binary button’s code’s 1-character symbol.
-*/
-var opCharOf = function(code) {
-  return '÷×–+'['/*-+'.indexOf(code.slice(-1))] || '';
+var charOf = function(code) {
+  if (code.startsWith('num')) {
+    return code.slice(-1);
+  }
+  else if (code.startsWith('op')) {
+    return '÷×–+'['/*-+'.indexOf(code.slice(-1))];
+  }
+  else {
+    return '';
+  }
 };
 
 // Define a function that returns the HTML of a numString.
 var htmlOf = function(numString) {
-  return numString.replace(/⅟/g, '<span class="tight hi">1/</span>');
+  if (numString.startsWith('⅟')) {
+    return '<span class="tight hi">1/</span>' + numString.slice(1));
+  }
 };
 
 /*
-  Define a function that returns a numString with a numChar appended to the
-  multiplier. Precondition: code is a numChar code.
+  Define a function that returns a numString with a character appended to the
+  multiplier.
 */
-var numCharPush = function(numString, code) {
-  var parsed = parse(numString);
-  parsed[0] += numCharOf(code);
-  return unparse(parsed);
+var charAppend = function(numString, code) {
+  var analysis = parse(numString);
+  analysis[0] += charOf(code);
+  return unparse(analysis);
 };
 
 // /// CALCULATOR INTERROGATION /// //
 
-/*
-  Define a function that returns the button imputable as the target of a click,
-  or an empty string if none.
-*/
+// Define a function that returns the button imputable as the target of a click.
 var realTargetOf = function(element) {
   if (element.classList.contains('text')) {
     return element.id;
@@ -232,9 +232,9 @@ var perform = function(state) {
 var showState = function(state) {
   var views = [];
   views.push(state.terms[0] ? htmlOf(state.terms[0]) : '');
-  views.push(state.terms[1] ? opCharOf(state.terms[1]) : '');
+  views.push(state.terms[1] ? charOf(state.terms[1]) : '');
   views.push(state.numString ? htmlOf(state.numString) : '');
-  views.push(state.op ? opCharOf(state.op) : '');
+  views.push(state.op ? charOf(state.op) : '');
   var viewElement = document.getElementById('result');
   viewElement.innerHTML
     = views.filter(function(view) {return view.length;}).join(' ');
@@ -302,17 +302,10 @@ var finishResult = function(state, result) {
   }
 };
 
-/*
-  Define a function that responds to a modifier entry. Preconditions:
-    0. The code is a modifier code.
-    1. There is a valid numString.
-*/
-var takeModifier = function(state, code) {
+// Define a function that responds to a modifier entry.
+var takeModifier = function(state, prefix) {
   if (state.contingentButtons.modifier[1]) {
-    state.numString = toggledOf(state.numString, {
-      'op^': 'minus',
-      'op1': 'reciprocal'
-    }[code]);
+    state.numString = toggledOf(state.numString, ['-', '⅟'][prefix]);
     finish(state);
   }
 };
@@ -324,10 +317,10 @@ var takeDigit = function(state, code) {
     && (code !== 'num0' || state.contingentButtons.zero[1])
   ) {
     if (state.numString) {
-      state.numString = clean(numCharPush(state.numString, code), false);
+      state.numString = clean(charAppend(state.numString, code), false);
     }
     else {
-      state.numString = clean(numCharOf(code), false);
+      state.numString = clean(charOf(code), false);
       if (state.op) {
         state.terms.push(state.op);
         state.op = undefined;
@@ -443,7 +436,7 @@ var takeRound = function(state) {
 // Define a utility for the event handlers.
 var inputRespond = function(code) {
   var state = session.getState();
-  if (numCharOf(code)) {
+  if (charOf(code)) {
     var priorLength
       = state.numString.length
       + (state.terms.length ? state.terms[0].length : 0);
@@ -451,11 +444,14 @@ var inputRespond = function(code) {
       takeDigit(state, code);
     }
   }
-  else if (opCharOf(code)) {
+  else if (charOf(code)) {
     takeBinary(state, code);
   }
-  else if (['op^', 'op1'].includes(code)) {
-    takeModifier(state, code);
+  else if (code === 'op^') {
+    takeModifier(state, '-');
+  }
+  else if (code === 'op1') {
+    takeModifier(state, '⅟');
   }
   else if (code === 'op!') {
     takeDel(state);
