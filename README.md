@@ -38,28 +38,35 @@ At any time, the application is in some _state_. The state is the facts that the
 
 - _numString_: a string representing a number, or the empty string.
 - _binaryOp_: the string `+`, `-`, `×`, or `÷`, or else undefined.
-- _terms_: an array of 0, 1, or 2 elements. If it has a first element, it is a string representing a number. If it also has a second element, it is the string `+`, `-`, `×`, or `÷`.
+- _terms_: an array of 0, 1, or 2 elements. If it has a first element (`terms[0]`), that is a string representing a number. If it also has a second element (`terms[1]`), that is the string `+`, `-`, `×`, or `÷`.
 - _volatiles_: an array of data about inputs that cannot always be performed.
 
-The format of any string representing a number is exemplified by `-⅟1234.56e+15`. This represents the number you get when you multiply 1234.56 (called the _multiplier_) by 1,000,000,000,000,000 (called the _multiplicand_), then divide 1 by the result (indicated by the _inverter_), and then make that result negative (indicated by the _negator_). Such a string must contain at least one digit, but otherwise it can contain or omit all the components shown here. `e` stands for “10 the the power of”. The sign following `e` can be either `+` or `-`.
+The format of any string representing a number, i.e. `numString` or `terms[0]`, is exemplified by `-⅟1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then divide 1 by the result (indicated by `⅟`, the _inverter_), and then make that result negative (indicated by `-`, the _negator_). Such a string must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
 
-Some inputs—the digits 0 to 9—are always performable. All the other inputs are volatile: Whether they can be performed depends on the values of `numString`, `binaryOp`, and `terms`. For each volatile input, the `volatiles` property specifies whether it can currently be performed. For example, if the state is empty, the only performable volatile is the decimal point. If you then enter a digit, 7 more volatiles (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
+Some inputs, namely the digits 0 to 9, are performable in every state. All the other inputs are volatile: Whether they can be performed depends on the values of `numString`, `binaryOp`, and `terms`. For each volatile input, the `volatiles` property specifies whether it can currently be performed. For example, if the state is empty, the only performable volatile is the decimal point. If you then enter a digit, 7 more volatiles (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
 
-The state is always displayed in the calculator. The `terms` elements and the `numString` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `volatiles` are displayed by means of the buttons’ appearances: bright if enabled, and dim if disabled.
+The state is always displayed in the calculator. The `terms` elements and the `numString` or `binaryOp` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `volatiles` are displayed by means of the buttons’ appearances: bright if enabled, and dim if disabled.
 
 The application imposes some restrictions on the formats of strings representing numbers.
 
 - If it is `numString`, then its multiplier cannot begin with '0'
   immediately followed by another digit, and also cannot contain “.” before its first digit. So, the application converts `0056` to `56`, and it converts `.5` to `0.5`.
-- If it is the first element of `terms`, there are additional restrictions:
+- If it is `terms[0]`, there are additional restrictions:
     - No inverter. The application calculates the reciprocal and displays that.
-    - No multiplier consisting of `-0`. That is converted to `0`.
+    - No negator if the multiplier is `0`. The application deletes the negator in that case.
   3. No trailing `0`s in the multiplier after a decimal point.
-  4. The multiplier may not end with `.`.
+  4. No decimal point in either the multiplier or the multiplicand unless there is at least 1 digit after it.
 
-The `op^` input, performed with the `±` button or the`` ` ``key, toggles the sign of the `numString`.
+The `op^` input, performed with the `±` button or the`` ` ``key, toggles the presence of a negator in `numString`.
 
-The `op1` input, performed with the `⅟` button or the `\` key, toggles the presence of the inversion operator on the `numString`.
+Inputting a `binaryOp` when there is a `numString` has an effect that depends on the `terms`.
+
+- If there is no `term`, it converts the `numString` to `term[0]`.
+- If there are 2 `terms`, it performs the calculation on them and the `numString` and makes the result `term[0]`.
+
+Inputting a digit when there is a `binaryOp` converts the `binaryOp` to `terms[1]`.
+
+The `op1` input, performed with the `⅟` button or the `\` key, toggles the presence of an inverter in the `numString`.
 
 The `op~` input, performed with the `≅` button or the `~` key, rounds, and how it rounds depends on the state.
 
@@ -68,7 +75,7 @@ The `op~` input, performed with the `≅` button or the `~` key, rounds, and how
 
 The `op=` input, performed with the `=` button or the `=` or `Enter` key, performs the calculation (without rounding).
 
-The `op!` input, performed with the `⌫` button or the `Backspace`, `Escape`, or `Clear` key, deletes the final character of the state.
+The `op!` input, performed with the `⌫` button or the `Backspace`, `Escape`, or `Clear` key, deletes the final character of the state. If doing that eliminates a `binaryOp` or the only remaining digit of a `numString`, the change in state that would have occurred upon the inputting of that character is reversed. For example, if the `terms` are `123` and `+` and there is a `numString` of `5`, inputting `op!` deletes the `5` and converts the `+` from `terms[1] to `binaryOp`. Any format changes enforced on a `numString` when it was converted to `terms[0]`, however, are not reversed if a deletion returns it from `terms[0]` to `numString`.
 
 A `binaryOp` input, performed with any of the buttons in the left-most column or with the `+` (plus), `-` (minus), `*` (times), or `/` or `÷` (divided by) key, has an effect that depends on the state.
 
@@ -76,7 +83,7 @@ A `binaryOp` input, performed with any of the buttons in the left-most column or
 - If there are 1 term and a `binaryOp`, it replaces the `binaryOp` with itself.
 - If there are 2 terms and a `numString`, it performs the calculation with those 3 arguments, replaces the terms with the result as 1 term, and makes itself the `binaryOp`.
 
-The calculator enforces a limit of 40 digits on the aggregate length of the numeric elements of the state.
+Notwithstanding any of the rules above, the calculator disables the input of any digit if the aggregate length of `numString` and `terms[0] reaches 40.
 
 The above rules, while not intuitive as presented, are intended to produce a calculator that does what the user’s intuition anticipates.
 

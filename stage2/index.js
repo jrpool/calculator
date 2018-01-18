@@ -1,39 +1,7 @@
-// /// DEFINITIONS /// //
-
-/*
-  numChar: a character matching /[0-9.]/.
-  Negative prefix: “–”.
-  Reciprocal prefix: “⅟”.
-  numString: a string that concatenates 4 segments:
-    negative prefix (optional).
-    reciprocal prefix (optional).
-    multiplier: 1 or more numChars.
-    multiplicand (optional): “e” followed by 1 or more numChars.
-  cleanNumString: a numString whose multiplier does not begin with '0'
-    immediately followed by another digit and does not begin with “.”
-  finalNumString: a cleanNumString that has:
-    1. No reciprocal prefix.
-    2. No multiplier starting with “-0”.
-    3. No post-“.” trailing “0”s in the multiplier.
-    4. No trailing “.” in the multiplier.
-  code: a unique identifier of a button.
-  state: an object representing the information eligible for manipulation,
-    containing 4 properties:
-      currentNum: a numString being composed.
-      op: the code of a binary operator .
-      terms: the current result as an array of a committed numString and a
-        committed binary operator code.
-      contingentButtons: an object with properties describing the volatile
-        buttons, each having as its value an array of the button class (“std”
-        for gray or “op” for orange) and whether the button is now enabled.
-  stateString: a string
-  opChar: the character representing a binary operator in
-*/
-
 // /// STRING MANIPULATION /// //
 
 /*
-  Define a function that returns, for a numString:
+  Define a function that returns, for numString:
     (0) its multiplier
     (1) its multiplicand
     (2) whether it has a reciprocal prefix (“⅟”)
