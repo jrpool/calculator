@@ -32,25 +32,22 @@ Stage 2 of the application is based on the following concepts and rules.
 
 An _input_ is a single button or keypress that a user can perform. For each input, there is a button and there is at least 1 keypress that can perform it.
 
-Each input has a _code_, a unique identifier of that input.
+Each input has a _code_: a unique identifier of that input. For example, the input of the digit `1` has the code `num1`. The input of the inversion operator (the operator that divides 1 by a number) is `op1`.
 
 At any time, the application is in some _state_. The state is the facts that the user can still do something about without restarting the application. The state is composed of 4 facts:
 
-- _arg0_: a number.
+- _arg0_: a _numString_ (string representing a number).
 - _binaryOp_: a function of 2 numeric arguments.
-- _arg1_: a number.
-- _potentials_: a record of the inputs that can currently be made.
+- _arg1_: a numString.
+- _volatiles_: data about inputs that cannot always be performed.
 
-Not all inputs are potentials. Given a state, some inputs are appropriate and others are not. Only the appropriate inputs are potentials. For example, if the state is empty, the only potentials are the digits 0–9 and the decimal point. At any time, only the potentials are enabled; the other inputs are disabled, and their buttons are marked to show this.
+The format of a numString is exemplified by `-⅟1234.56e15`. This represents the number you get when you multiply 1234.56 by 1,000,000,000,000,000, then divide 1 by the result, and then make that result negative. A numString must contain at least one digit, but otherwise it can contain or omit all the components shown here.
 
-At each time, the state is displayed at the top of the calculator, represented by a string.
+There are 4 possible values for `binaryOp` (other than undefined): 
 
-Internally, the state is represented as an array of 4 elements:
+Some inputs—the digits 0 to 9—are always performable. All the other inputs are volatile: Whether they can be performed depends on the values of arg0, binaryOp, and arg1. For each volatile input, the `volatiles` property specifies whether it can currently be performed. For example, if the state is empty, the only performable volatile is the decimal point. If you then enter a digit, 7 more volatiles (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button is marked to show this and its keypresses have no effect.
 
-- arg0: a string representing a number. It can optionally begin with “-” and otherwise consists of digits and an optional decimal point.
-- the code of a binaryOp.
-- arg1: a string representing a number, optionally beginning with a _negator_ (–) and/or an _inverter_ (⅟), followed by a _multiplier_ (a string of digits, optionally with a decimal point), and then by an optional _multiplicand_ ('e' followed by a string of digits, optionally including a decimal point).
-- potentials: an object with a property for each input that can ever fail to be a potential, stating whether it currently is a potential.
+The state is always displayed in the calculator. The `arg0`, `binaryOp`, and `org1` values are concatenated and displayed at the top. , represented by a string. The basic format of the displayed state is
 
 Each of them is composed of the following substrings in this order:
 

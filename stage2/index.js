@@ -395,13 +395,13 @@ var takeBinary = function(state, code) {
         var result = perform(state);
         if (result.length) {
           state.terms = [clean(result, true)];
-          state.numString = undefined;
+          state.numString = '';
           state.op = code;
         }
       }
       else {
         state.terms = [clean(state.numString, true)];
-        state.numString = undefined;
+        state.numString = '';
         state.op = code;
       }
       finish(state);
@@ -424,7 +424,7 @@ var takeDel = function(state) {
     if (state.numString) {
       state.numString = numCharPop(state.numString);
       if (!state.numString.length) {
-        state.numString = undefined;
+        state.numString = '';
         if (state.terms.length) {
           state.op = state.terms.pop();
         }
@@ -478,7 +478,12 @@ var takeRound = function(state) {
 var inputRespond = function(code) {
   var state = session.getState();
   if (numCharOf(code)) {
-    takeDigit(state, code);
+    var priorLength
+      = state.numString.length
+      + (state.terms.length ? state.terms[0].length : 0);
+    if (priorLength < 40) {
+      takeDigit(state, code);
+    }
   }
   else if (opCharOf(code)) {
     takeBinary(state, code);
