@@ -152,6 +152,9 @@ var htmlOf = function(numString) {
   if (numString.startsWith('⅟')) {
     return '<span class="tight hi">1/</span>' + numString.slice(1));
   }
+  else {
+    return numString;
+  }
 };
 
 /*
@@ -164,43 +167,28 @@ var charAppend = function(numString, code) {
   return unparse(analysis);
 };
 
-// /// CALCULATOR INTERROGATION /// //
-
-// Define a function that returns the button imputable as the target of a click.
-var realTargetOf = function(element) {
-  if (element.classList.contains('text')) {
-    return element.id;
-  }
-  else if (element.classList.contains('button')) {
-    return element.firstElementChild.id;
-  }
-  else {
-    return '';
-  }
-};
-
 // /// STATE INTERROGATION /// //
 
 /*
   Define a local object representing the document’s state and global methods
-  that get and set the state. Initialize the state’s properties:
+  that get and set the state. Initialize the state’s properties.
 */
 var session = (function() {
   var state = {
     numString: '',
     op: undefined,
     terms: [],
-    contingentButtons: {
-      'zero': ['std', true],
-      'dot': ['std', true],
-      'plus': ['op', false],
-      'minus': ['op', false],
-      'times': ['op', false],
-      'over': ['op', false],
-      'modifier': ['op', false],
-      'delete': ['op', false],
-      'equal': ['op', false],
-      'round': ['op', false]
+    volatiles: {
+      'num0': ['std', true],
+      'num.': ['std', true],
+      'op+': ['op', false],
+      'op-': ['op', false],
+      'op*': ['op', false],
+      'op/': ['op', false],
+      'mod': ['op', false],
+      'op!': ['op', false],
+      'op=': ['op', false],
+      'op~': ['op', false]
     }
   };
   return {
@@ -210,11 +198,10 @@ var session = (function() {
 })();
 
 /*
-  Define a function that returns, as a string, the result of a binary
-  operation on the committed terms and the uncommitted number.
+  Define a function that returns, as a string, the result of a calculation.
 */
 var perform = function(state) {
-  var num0 = Number.parseFloat(clean(state.terms[0], true));
+  var num0 = Number.parseFloat(state.terms[0]);
   var num1 = Number.parseFloat(clean(state.numString, true));
   var result;
   switch (state.terms[1]) {
@@ -231,7 +218,7 @@ var perform = function(state) {
 // Define a function that displays the state in the calculator.
 var showState = function(state) {
   var views = [];
-  views.push(state.terms[0] ? htmlOf(state.terms[0]) : '');
+  views.push(state.terms[0] || '');
   views.push(state.terms[1] ? charOf(state.terms[1]) : '');
   views.push(state.numString ? htmlOf(state.numString) : '');
   views.push(state.op ? charOf(state.op) : '');
@@ -245,29 +232,29 @@ var showState = function(state) {
 
 // Define a function that makes all and only eligible buttons responsive.
 var setButtons = function(state) {
-  state.contingentButtons.zero[1]
+  state.volatiles['num0'][1]
     = !state.numString || parse(state.numString)[0] !== '0';
-  state.contingentButtons.dot[1]
+  state.volatiles['num.'][1]
     = !state.numString || !state.numString.includes('.');
-  state.contingentButtons.plus[1]
+  state.volatiles['op+'][1]
     = Boolean(state.numString || (state.terms.length && state.op !== 'op+'));
-  state.contingentButtons.minus[1]
+  state.volatiles['op-'][1]
     = Boolean(state.numString || (state.terms.length && state.op !== 'op-'));
-  state.contingentButtons.times[1]
+  state.volatiles['op*'][1]
     = Boolean(state.numString || (state.terms.length && state.op !== 'op*'));
-  state.contingentButtons.over[1]
+  state.volatiles['op/'][1]
     = Boolean(state.numString || (state.terms.length && state.op !== 'op/'));
-  state.contingentButtons.modifier[1] = state.numString;
-  state.contingentButtons.delete[1]
+  state.volatiles['mod'][1] = state.numString;
+  state.volatiles['op!'][1]
     = state.numString || state.op || state.terms.length;
-  state.contingentButtons.equal[1] = state.terms.length && state.numString;
-  state.contingentButtons.round[1]
+  state.volatiles['op='][1] = state.terms.length && state.numString;
+  state.volatiles['op~'][1]
     = state.numString && (state.terms.length || state.numString.includes('.'));
   session.setState(state);
-  for (var buttonType in state.contingentButtons) {
+  for (var buttonType in state.volatiles) {
     var typeButtons = document.getElementsByClassName('button-' + buttonType);
     for (var i = 0; i < typeButtons.length; i++) {
-      if (state.contingentButtons[buttonType][1]) {
+      if (state.volatiles[buttonType][1]) {
         typeButtons.item(i).classList.remove('button-off');
         typeButtons.item(i).classList.add('button-on');
       }
@@ -295,7 +282,7 @@ var finish = function(state) {
 */
 var finishResult = function(state, result) {
   if (result.length) {
-    state.numString = clean(result, true);
+    state.numString = result;
     state.terms = [];
     state.op = undefined;
     finish(state);
@@ -303,30 +290,52 @@ var finishResult = function(state, result) {
 };
 
 // Define a function that responds to a modifier entry.
-var takeModifier = function(state, prefix) {
-  if (state.contingentButtons.modifier[1]) {
-    state.numString = toggledOf(state.numString, ['-', '⅟'][prefix]);
+var takeModifier = function(state, modifier) {
+  if (state.volatiles.modifier[1]) {
+    state.numString = toggledOf(state.numString, modifier);
     finish(state);
   }
 };
 
-// Define a function that responds to a numChar (“0”–“9” or “.”) entry.
-var takeDigit = function(state, code) {
-  if (
-    (code !== 'num.' || state.contingentButtons.dot[1])
-    && (code !== 'num0' || state.contingentButtons.zero[1])
-  ) {
-    if (state.numString) {
-      state.numString = clean(charAppend(state.numString, code), false);
-    }
-    else {
-      state.numString = clean(charOf(code), false);
-      if (state.op) {
-        state.terms.push(state.op);
-        state.op = undefined;
-      }
-    }
-    finish(state);
+// Define a function that makes a binary operator `term[1]`.
+var termifyOp = function(state) {
+  if (state.op) {
+    state.terms.push(state.op);
+    state.op = undefined;
+  }
+};
+
+/*
+  Define a function that appends a character to `numString` and, if that
+  initializes `numString`, makes `op` `term[1]`.
+*/
+var growNumString = function(state, code) {
+  if (state.numString) {
+    state.numString = clean(charAppend(state.numString, code), false);
+  }
+  else {
+    state.numString = clean(charOf(code), false);
+    termifyOp(state);
+  }
+  finish(state);
+}
+
+// Define a function that responds to a positive digit entry.
+var takePositive = function(state, code) {
+  growNumString(state, code);
+};
+
+// Define a function that responds to a digit or decimal-point entry.
+var takeZero = function(state) {
+  if (state.volatiles.zero[1]) {
+    growNumString(state, 'num0');
+  }
+};
+
+// Define a function that responds to a digit or decimal-point entry.
+var takeDot = function(state) {
+  if (state.volatiles.dot[1]) {
+    growNumString(state, 'num.');
   }
 };
 
@@ -340,15 +349,9 @@ var contingentButtonOf = function(code) {
   return buttonMap[code] || '';
 };
 
-/*
-  Define a function that responds to a binary operator entry. Make it the
-  uncommitted operator of the state, replacing any existing one. If there
-  are an uncommitted number and terms, perform their operation and replace
-  the terms with the result. If there are no terms but there is an uncommitted
-  number, commit it. Precondition: code is a binary operator code.
-*/
+// Define a function that responds to a binary operator input.
 var takeBinary = function(state, code) {
-  if (state.contingentButtons[contingentButtonOf(code)][1]) {
+  if (state.volatiles[contingentButtonOf(code)][1]) {
     if (state.numString) {
       if (state.terms.length) {
         var result = perform(state);
@@ -379,7 +382,7 @@ var takeBinary = function(state, code) {
   uncommitted term and there is a committed term, uncommit it.
 */
 var takeDel = function(state) {
-  if (state.contingentButtons.delete[1]) {
+  if (state.volatiles.delete[1]) {
     if (state.numString) {
       state.numString = numCharPop(state.numString);
       if (!state.numString.length) {
@@ -404,7 +407,7 @@ var takeDel = function(state) {
   committed term. Precondition: There are 2 terms and an uncommitted number.
 */
 var takeEqual = function(state) {
-  if (state.contingentButtons.equal[1]) {
+  if (state.volatiles.equal[1]) {
     finishResult(state, perform(state));
   }
 };
@@ -418,7 +421,7 @@ var takeEqual = function(state) {
   has any decimal digits, round the string to 1 fewer decimal digit.
 */
 var takeRound = function(state) {
-  if (state.contingentButtons.round[1]) {
+  if (state.volatiles.round[1]) {
     if (state.numString) {
       if (state.terms.length) {
         finishResult(state, round(perform(state), 9));
@@ -441,11 +444,19 @@ var inputRespond = function(code) {
       = state.numString.length
       + (state.terms.length ? state.terms[0].length : 0);
     if (priorLength < 40) {
-      takeDigit(state, code);
+      if (code = 'num.') {
+        takeDot(state);
+      }
+      else if (code = 'num0') {
+        takeZero(state);
+      }
+      else if (code.startsWith('num')) {
+        takePositive(state, code);
+      }
+      else if (code.startsWith('op')) {
+        takeBinary(state, code);
+      }
     }
-  }
-  else if (charOf(code)) {
-    takeBinary(state, code);
   }
   else if (code === 'op^') {
     takeModifier(state, '-');
@@ -466,7 +477,7 @@ var inputRespond = function(code) {
 
 // Define an event handler for a mouse click.
 var clickRespond = function(event) {
-  inputRespond(realTargetOf(event.target));
+  inputRespond(event.target);
 };
 
 // Define an event handler for a keyboard keypress.
