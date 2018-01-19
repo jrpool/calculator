@@ -60,8 +60,8 @@ var clean = function(string, isTerm) {
 // Define a function that toggles the negator or inverter of a numString.
 var toggledOf = function(numString, prefix) {
   var analysis = parse(numString);
-  var prefixIndex = 2 + ['-', '⅟'].indexOf(prefix);
-  parsed[prefixIndex] = !analysis[prefixIndex];
+  var prefixIndex = 2 + ['⅟', '-'].indexOf(prefix);
+  analysis[prefixIndex] = !analysis[prefixIndex];
   return unparse(analysis);
 };
 
@@ -150,7 +150,7 @@ var charOf = function(code) {
 // Define a function that returns the HTML of a numString.
 var htmlOf = function(numString) {
   if (numString.startsWith('⅟')) {
-    return '<span class="tight hi">1/</span>' + numString.slice(1));
+    return '<span class="tight hi">1/</span>' + numString.slice(1);
   }
   else {
     return numString;
@@ -185,10 +185,11 @@ var session = (function() {
       'op-': ['op', false],
       'op*': ['op', false],
       'op/': ['op', false],
-      'mod': ['op', false],
+      'op^': ['op', false],
+      'op1': ['op', false],
       'op!': ['op', false],
-      'op=': ['op', false],
-      'op~': ['op', false]
+      'op~': ['op', false],
+      'op=': ['op', false]
     }
   };
   return {
@@ -205,10 +206,10 @@ var perform = function(state) {
   var num1 = Number.parseFloat(clean(state.numString, true));
   var result;
   switch (state.terms[1]) {
-    case 'op/': result = num0 / num1; break;
-    case 'op*': result = num0 * num1; break;
-    case 'op-': result = num0 - num1; break;
-    case 'op+': result = num0 + num1; break;
+    case '÷': result = num0 / num1; break;
+    case '×': result = num0 * num1; break;
+    case '–': result = num0 - num1; break;
+    case '+': result = num0 + num1; break;
   }
   return typeof result === 'number' ? result.toString() : '';
 };
@@ -219,7 +220,7 @@ var perform = function(state) {
 var showState = function(state) {
   var views = [];
   views.push(state.terms[0] || '');
-  views.push(state.terms[1] ? charOf(state.terms[1]) : '');
+  views.push(state.terms[1] || '');
   views.push(state.numString ? htmlOf(state.numString) : '');
   views.push(state.binaryOp || '');
   var viewElement = document.getElementById('result');
@@ -248,26 +249,25 @@ var setButtons = function(state) {
   state.volatiles['op/'][1] = Boolean(
     state.numString || (state.terms.length && state.binaryOp !== '÷')
   );
-  state.volatiles['mod'][1] = Boolean(state.numString);
+  state.volatiles['op^'][1]
+    = state.volatiles['op1'][1] = Boolean(state.numString);
   state.volatiles['op!'][1] = Boolean(
     state.numString || state.binaryOp || state.terms.length
   );
   state.volatiles['op='][1] = Boolean(state.terms.length && state.numString);
   state.volatiles['op~'][1] = Boolean(
-    state.numString && (state.terms.length || state.numString.includes('.')
+    state.numString && (state.terms.length || state.numString.includes('.'))
   );
   session.setState(state);
-  for (var buttonType in state.volatiles) {
-    var typeButtons = document.getElementsByClassName('button-' + buttonType);
-    for (var i = 0; i < typeButtons.length; i++) {
-      if (state.volatiles[buttonType][1]) {
-        typeButtons.item(i).classList.remove('button-off');
-        typeButtons.item(i).classList.add('button-on');
-      }
-      else {
-        typeButtons.item(i).classList.remove('button-on');
-        typeButtons.item(i).classList.add('button-off');
-      }
+  for (var buttonID in state.volatiles) {
+    var button = document.getElementById(buttonID);
+    if (state.volatiles[buttonID][1]) {
+      button.classList.remove('button-off');
+      button.classList.add('button-on');
+    }
+    else {
+      button.classList.remove('button-on');
+      button.classList.add('button-off');
     }
   }
 };
@@ -296,11 +296,21 @@ var finishResult = function(state, result) {
 };
 
 // Define a function that responds to a modifier entry.
-var takeModifier = function(state, modifier) {
-  if (state.volatiles.modifier[1]) {
-    state.numString = toggledOf(state.numString, modifier);
+var takeModifier = function(state, opCode, opChar) {
+  if (state.volatiles[opCode][1]) {
+    state.numString = toggledOf(state.numString, opChar);
     finish(state);
   }
+};
+
+// Define a function that responds to an inverter entry.
+var takeInverter = function(state) {
+  takeModifier(state, 'op1', '⅟');
+};
+
+// Define a function that responds to a negator entry.
+var takeNegator = function(state) {
+  takeModifier(state, 'op^', '-');
 };
 
 // Define a function that makes a binary operator `term[1]`.
@@ -333,14 +343,14 @@ var takePositive = function(state, code) {
 
 // Define a function that responds to a digit or decimal-point entry.
 var takeZero = function(state) {
-  if (state.volatiles.zero[1]) {
+  if (state.volatiles['num0'][1]) {
     growNumString(state, 'num0');
   }
 };
 
 // Define a function that responds to a digit or decimal-point entry.
 var takeDot = function(state) {
-  if (state.volatiles.dot[1]) {
+  if (state.volatiles['num.'][1]) {
     growNumString(state, 'num.');
   }
 };
@@ -417,10 +427,10 @@ var inputRespond = function(code) {
       = state.numString.length
       + (state.terms.length ? state.terms[0].length : 0);
     if (priorLength < 40) {
-      if (code = 'num.') {
+      if (code === 'num.') {
         takeDot(state);
       }
-      else if (code = 'num0') {
+      else if (code === 'num0') {
         takeZero(state);
       }
       else if (code.startsWith('num')) {
@@ -431,11 +441,11 @@ var inputRespond = function(code) {
       }
     }
   }
-  else if (code === 'op^') {
-    takeModifier(state, '-');
-  }
   else if (code === 'op1') {
-    takeModifier(state, '⅟');
+    takeInverter(state);
+  }
+  else if (code === 'op^') {
+    takeNegator(state);
   }
   else if (code === 'op!') {
     takeDel(state);
@@ -450,7 +460,7 @@ var inputRespond = function(code) {
 
 // Define an event handler for a mouse click.
 var clickRespond = function(event) {
-  inputRespond(event.target);
+  inputRespond(event.target.id);
 };
 
 // Define an event handler for a keyboard keypress.
