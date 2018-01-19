@@ -176,7 +176,7 @@ var charAppend = function(numString, code) {
 var session = (function() {
   var state = {
     numString: '',
-    op: undefined,
+    binaryOp: undefined,
     terms: [],
     volatiles: {
       'num0': ['std', true],
@@ -221,7 +221,7 @@ var showState = function(state) {
   views.push(state.terms[0] || '');
   views.push(state.terms[1] ? charOf(state.terms[1]) : '');
   views.push(state.numString ? htmlOf(state.numString) : '');
-  views.push(state.op ? charOf(state.op) : '');
+  views.push(state.binaryOp || '');
   var viewElement = document.getElementById('result');
   viewElement.innerHTML
     = views.filter(function(view) {return view.length;}).join(' ');
@@ -236,20 +236,26 @@ var setButtons = function(state) {
     = !state.numString || parse(state.numString)[0] !== '0';
   state.volatiles['num.'][1]
     = !state.numString || !state.numString.includes('.');
-  state.volatiles['op+'][1]
-    = Boolean(state.numString || (state.terms.length && state.op !== 'op+'));
-  state.volatiles['op-'][1]
-    = Boolean(state.numString || (state.terms.length && state.op !== 'op-'));
-  state.volatiles['op*'][1]
-    = Boolean(state.numString || (state.terms.length && state.op !== 'op*'));
-  state.volatiles['op/'][1]
-    = Boolean(state.numString || (state.terms.length && state.op !== 'op/'));
-  state.volatiles['mod'][1] = state.numString;
-  state.volatiles['op!'][1]
-    = state.numString || state.op || state.terms.length;
-  state.volatiles['op='][1] = state.terms.length && state.numString;
-  state.volatiles['op~'][1]
-    = state.numString && (state.terms.length || state.numString.includes('.'));
+  state.volatiles['op+'][1] = Boolean(
+    state.numString || (state.terms.length && state.binaryOp !== '+')
+  );
+  state.volatiles['op-'][1] = Boolean(
+    state.numString || (state.terms.length && state.binaryOp !== '–')
+  );
+  state.volatiles['op*'][1] = Boolean(
+    state.numString || (state.terms.length && state.binaryOp !== '×')
+  );
+  state.volatiles['op/'][1] = Boolean(
+    state.numString || (state.terms.length && state.binaryOp !== '÷')
+  );
+  state.volatiles['mod'][1] = Boolean(state.numString);
+  state.volatiles['op!'][1] = Boolean(
+    state.numString || state.binaryOp || state.terms.length
+  );
+  state.volatiles['op='][1] = Boolean(state.terms.length && state.numString);
+  state.volatiles['op~'][1] = Boolean(
+    state.numString && (state.terms.length || state.numString.includes('.')
+  );
   session.setState(state);
   for (var buttonType in state.volatiles) {
     var typeButtons = document.getElementsByClassName('button-' + buttonType);
@@ -284,7 +290,7 @@ var finishResult = function(state, result) {
   if (result.length) {
     state.numString = result;
     state.terms = [];
-    state.op = undefined;
+    state.binaryOp = undefined;
     finish(state);
   }
 };
@@ -299,9 +305,9 @@ var takeModifier = function(state, modifier) {
 
 // Define a function that makes a binary operator `term[1]`.
 var termifyOp = function(state) {
-  if (state.op) {
-    state.terms.push(state.op);
-    state.op = undefined;
+  if (state.binaryOp) {
+    state.terms.push(state.binaryOp);
+    state.binaryOp = undefined;
   }
 };
 
@@ -339,89 +345,56 @@ var takeDot = function(state) {
   }
 };
 
-var contingentButtonOf = function(code) {
-  var buttonMap = {
-    'op+': 'plus',
-    'op-': 'minus',
-    'op*': 'times',
-    'op/': 'over'
-  };
-  return buttonMap[code] || '';
-};
-
 // Define a function that responds to a binary operator input.
 var takeBinary = function(state, code) {
-  if (state.volatiles[contingentButtonOf(code)][1]) {
+  if (state.volatiles[code][1]) {
     if (state.numString) {
       if (state.terms.length) {
         var result = perform(state);
         if (result.length) {
           state.terms = [clean(result, true)];
-          state.numString = '';
-          state.op = code;
         }
       }
       else {
         state.terms = [clean(state.numString, true)];
-        state.numString = '';
-        state.op = code;
       }
-      finish(state);
     }
-    else if (state.op) {
-      state.op = code;
-      finish(state);
-    }
+    state.numString = '';
+    state.binaryOp = charOf(code);
+    finish(state);
   }
 };
 
-/*
-  Define a function that responds to a deletion operator entry. If there is
-  an uncommitted number, delete its multiplier’s last character. If there is
-  an uncommitted binary operator, delete it. If the deletion deletes the
-  uncommitted term and there is a committed term, uncommit it.
-*/
+// Define a function that responds to a deletion operator input.
 var takeDel = function(state) {
-  if (state.volatiles.delete[1]) {
+  if (state.volatiles['op!'][1]) {
     if (state.numString) {
-      state.numString = numCharPop(state.numString);
+      state.numString = charPop(state.numString);
       if (!state.numString.length) {
         state.numString = '';
         if (state.terms.length) {
-          state.op = state.terms.pop();
+          state.binaryOp = state.terms.pop();
         }
       }
-      finish(state);
     }
-    else if (state.op) {
-      state.op = undefined;
+    else if (state.binaryOp) {
+      state.binaryOp = undefined;
       state.numString = state.terms.pop();
-      finish(state);
     }
+    finish(state);
   }
 };
 
-/*
-  Define a function that responds to an equal operator entry. Perform the binary operation specified by the terms and uncommitted number and make
-  the result the state’s uncommitted term, leaving the state with no
-  committed term. Precondition: There are 2 terms and an uncommitted number.
-*/
+// Define a function that responds to a calculation operator input.
 var takeEqual = function(state) {
-  if (state.volatiles.equal[1]) {
+  if (state.volatiles['op='][1]) {
     finishResult(state, perform(state));
   }
 };
 
-/*
-  Define a function that responds to a rounding operator entry. If there is
-  a binary operation ready to perform, perform it, rounding the result to
-  9 decimal digits if it would otherwise be longer, making it the state’s
-  uncommitted term, and leaving the state with no committed term. If there
-  is an uncommitted numString, there is no committed term, and the string
-  has any decimal digits, round the string to 1 fewer decimal digit.
-*/
+// Define a function that responds to a rounding operator input.
 var takeRound = function(state) {
-  if (state.volatiles.round[1]) {
+  if (state.volatiles['op~'][1]) {
     if (state.numString) {
       if (state.terms.length) {
         finishResult(state, round(perform(state), 9));
