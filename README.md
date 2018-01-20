@@ -39,7 +39,7 @@ At any time, the application is in some _state_. The state is the facts that the
 - _numString_: a string representing a number, or the empty string.
 - _binaryOp_: the string `+`, `-`, `×`, or `÷`, or else undefined.
 - _terms_: an array of 0, 1, or 2 elements. If it has a first element (`terms[0]`), that is a string representing a number. If it also has a second element (`terms[1]`), that is the string `+`, `-`, `×`, or `÷`.
-- _volatiles_: an array of data about inputs that cannot always be performed.
+- _inputs_: an array of data about possible inputs.
 
 The format of any `numString` is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _inverter_). Such a string must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
 
@@ -54,9 +54,9 @@ A `term[0]` has the same format as a `numString`, except that:
 
 Numbers in scientific notation (i.e. with `e`) cannot be directly input. They arise automatically in very large or very small results.
 
-Some inputs, namely the digits 0 to 9, are performable in every state. All the other inputs are volatile: Whether they can be performed depends on the values of `numString`, `binaryOp`, and `terms`. For each volatile input, the `volatiles` property specifies whether it can currently be performed. For example, if the state is empty, the only performable volatile is the decimal point. If you then enter a digit, 7 more volatiles (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
+Whether any input can be performed depends on the values of `numString`, `binaryOp`, and `terms`. The `inputs` property of the state specifies whether each input can currently be performed. For example, if the state is empty, the only performable input is the decimal point. If you then enter a digit, 7 more inputs (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
 
-The state is always displayed in the calculator. The `terms` elements and the `numString` or `binaryOp` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `volatiles` are displayed by means of the buttons’ appearances: bright if enabled, and dim if disabled.
+The state is always displayed in the calculator. The `terms` elements and the `numString` or `binaryOp` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `inputs` are displayed as buttons: bright if enabled, and dim if disabled.
 
 The `op^` input, performed with the `±` button or the`` ` ``key, toggles the presence of a negator in `numString`.
 
