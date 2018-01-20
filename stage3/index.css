@@ -1,0 +1,161 @@
+* {
+  box-sizing: border-box;
+}
+
+.b-round {
+  border-radius: 0 0 6px 6px;
+}
+
+.bl-round {
+  border-radius: 0 0 0 6px;
+}
+
+.br-round {
+  border-radius: 0 0 6px 0;
+}
+
+.button-num,
+.button-dot {
+  opacity: 1;
+  transition: all 100ms;
+}
+
+.c {
+  text-align: center;
+}
+
+.calculator {
+  height: 14.4rem;
+  width: 16rem;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 6px;
+  box-shadow: 9px 9px 36px gray;
+}
+
+.button {
+  width: 20%;
+}
+
+.button,
+.button-area {
+  float: left;
+  height: 100%;
+}
+
+.row-tall {
+  height: 100%;
+}
+
+.button-off,
+.button-off:active,
+.button-off:hover {
+  opacity: 0.2;
+}
+
+.button-on {
+  opacity: 1;
+  transition: all 100ms;
+}
+
+.button-on:hover {
+  opacity: 0.8;
+}
+
+.button-on:active {
+  opacity: 0.4;
+}
+
+.button-op {
+  background-color: darkorange;
+}
+
+.button-op,
+.result {
+  color: white;
+}
+
+.button-std {
+  background-color: lightgray;
+  color: black;
+}
+
+.calculator,
+.button,
+.result {
+  border: 1px solid gray;
+}
+
+.displayonly {
+  height: 24%;
+}
+
+form {
+  height: 100%;
+  width: 100%;
+}
+
+.hi {
+  vertical-align: super;
+}
+
+.hi,
+.lo {
+  font-size: 0.6em;
+}
+
+.interactive {
+  background-color: gray;
+  height: 76%;
+}
+
+.lo {
+  vertical-align: sub;
+}
+
+main {
+  height: 100vh;
+}
+
+.r {
+  text-align: right;
+}
+
+#result {
+  font-size: 225%;
+  text-align: right;
+  padding-right: .9rem;
+  background-color: darkgray;
+}
+
+.row {
+  width: 100%;
+}
+
+.row-short {
+  height: 25%;
+}
+
+.row-short .text {
+  font-size: large;
+}
+
+.t-round {
+  border-radius: 6px 6px 0 0;
+}
+
+.text {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  user-select: none;
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.tight {
+  letter-spacing: -0.1em;
+}
