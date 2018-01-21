@@ -126,7 +126,8 @@ var inputCodeOf = function(keyText) {
     '.': 'num.',
     '=': 'op=',
     'Enter': 'op=',
-    '~': 'op~'
+    '~': 'op~',
+    'Tab': 'Tab'
   };
   return keyCodeMap[keyText] || '';
 };
@@ -180,7 +181,6 @@ var session = (function() {
     terms: [],
     inputs: {
       'num0': ['std', true],
-      'num.': ['std', true],
       'num1': ['std', true],
       'num2': ['std', true],
       'num3': ['std', true],
@@ -190,6 +190,7 @@ var session = (function() {
       'num7': ['std', true],
       'num8': ['std', true],
       'num9': ['std', true],
+      'num.': ['std', true],
       'op+': ['op', false],
       'op-': ['op', false],
       'op*': ['op', false],
@@ -201,6 +202,11 @@ var session = (function() {
       'op=': ['op', false]
     }
   };
+  var inputs = Object.keys(state.inputs);
+  for (var i = 0; i < inputs.length - 1; i++) {
+    state.inputs[inputs[i]].push(inputs[i + 1]);
+  }
+  state.inputs[inputs[inputs.length - 1]].push(inputs[0]);
   return {
     getState: function() {return JSON.parse(JSON.stringify(state));},
     setState: function(newState) {state = JSON.parse(JSON.stringify(newState));}
@@ -478,6 +484,8 @@ var clickRespond = function(event) {
   inputRespond(event.target.id);
 };
 
+//
+
 // Define an event handler for a keyboard keypress.
 var keyRespond = function(event) {
   var code = inputCodeOf(event.key);
@@ -488,6 +496,6 @@ var keyRespond = function(event) {
 
 // /// EXECUTION /// //
 
-// Create event listeners
+// Create event listeners.
 document.getElementById('buttons').addEventListener('click', clickRespond);
 window.addEventListener('keydown', keyRespond);
