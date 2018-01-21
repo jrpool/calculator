@@ -237,11 +237,13 @@ var perform = function(state) {
     case '+': result = num0 + num1; break;
   }
   if (typeof result === 'number') {
-    var roundedResult = result.toFixed(9);
-    if (Math.abs(roundedResult - result) < 0.00000001) {
-      result = roundedResult;
+    if (state.round) {
+      var roundedResult = result.toFixed(9);
+      if (Math.abs(roundedResult - result) < 0.00000001) {
+        result = roundedResult;
+      }
     }
-    return result.toString();
+    return clean(result.toString(), true);
   }
   else {
     return '';
@@ -489,12 +491,7 @@ var takeRound = function(state) {
 // Define a function that responds to a calculation operator input.
 var takeEqual = function(state) {
   if (state.inputs['op='][1]) {
-    if (state.round) {
-      finishResult(state, roundPop(perform(state), 9));
-    }
-    else {
-      finishResult(state, perform(state));
-    }
+    finishResult(state, perform(state));
   }
 };
 
