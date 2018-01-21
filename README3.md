@@ -18,7 +18,9 @@ The application fulfilled a variation on the requirements of the “Mac Calculat
 
 The appearances of the two calculators in the same situation (after the user has entered “8 - 6”) are shown here:
 
-<img src="stage3/images/maccalc.png" alt="Mac calculator" height="310px"> <img src="stage3/images/calculator.png" alt="This calculator" height="310px">
+Mac Calculator | This calculator
+--- | ---
+<img src="stage3/images/maccalc.png" alt="Mac calculator" height="310px"> | <img src="stage3/images/calculator.png" alt="This calculator" height="310px">
 
 The exercise built the application in 3 stages.
 
