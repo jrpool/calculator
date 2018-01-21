@@ -345,24 +345,6 @@ var finishResult = function(state, result) {
   }
 };
 
-// Define a function that responds to a modifier entry.
-var takeModifier = function(state, opCode, opChar) {
-  if (state.inputs[opCode][1]) {
-    state.numString = toggledOf(state.numString, opChar);
-    finish(state);
-  }
-};
-
-// Define a function that responds to an inverter entry.
-var takeInverter = function(state) {
-  takeModifier(state, 'op1', '⅟');
-};
-
-// Define a function that responds to a negator entry.
-var takeNegator = function(state) {
-  takeModifier(state, 'op^', '-');
-};
-
 // Define a function that makes a binary operator `term[1]`.
 var termifyOp = function(state) {
   if (state.binaryOp) {
@@ -388,14 +370,14 @@ var growNumString = function(state, code) {
   }
 }
 
-// Define a function that responds to a positive digit entry.
-var takePositive = function(state, code) {
-  growNumString(state, code);
-};
-
 // Define a function that responds to a digit or decimal-point entry.
 var takeZero = function(state) {
   growNumString(state, 'num0');
+};
+
+// Define a function that responds to a positive digit entry.
+var takePositive = function(state, code) {
+  growNumString(state, code);
 };
 
 // Define a function that responds to a digit or decimal-point entry.
@@ -422,6 +404,24 @@ var takeBinary = function(state, code) {
     state.binaryOp = charOf(code);
     finish(state);
   }
+};
+
+// Define a function that responds to a modifier entry.
+var takeModifier = function(state, opCode, opChar) {
+  if (state.inputs[opCode][1]) {
+    state.numString = toggledOf(state.numString, opChar);
+    finish(state);
+  }
+};
+
+// Define a function that responds to a negator entry.
+var takeNegator = function(state) {
+  takeModifier(state, 'op^', '-');
+};
+
+// Define a function that responds to an inverter entry.
+var takeInverter = function(state) {
+  takeModifier(state, 'op1', '⅟');
 };
 
 // Define a function that responds to a deletion operator input.
