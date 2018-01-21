@@ -66,6 +66,31 @@ var toggledOf = function(numString, prefix) {
 };
 
 /*
+  Define a function that returns a `numString`, formatted as a `term[0]` and
+  with its multiplier rounded down by 1 decimal digit, subject to a maximum
+  count of decimal digits.
+*/
+var roundPop = function(numString, decimalsMax) {
+  var cleanedString = clean(numString, true);
+  var analysis = parse(cleanedString);
+  if (analysis[0].length === 1) {
+    return '';
+  }
+  else {
+    var dotIndex = analysis[0].indexOf('.');
+    if (dotIndex > -1) {
+      analysis[0] = Number.parseFloat(analysis[0]).toFixed(
+        Math.min(decimalsMax, analysis[0].length - dotIndex -2)
+      );
+    }
+    else {
+      analysis[0] = analysis[0].slice(0, -1);
+    }
+    return unparse(analysis);
+  }
+};
+
+/*
   Define a function that returns a `numString` with the last character of its
   multiplier removed and, if the removal leaves it empty, with any inverter
   or negator deleted.
@@ -79,22 +104,6 @@ var charPop = function(numString) {
     analysis[0] = analysis[0].slice(0, -1);
     return unparse(analysis);
   }
-};
-
-/*
-  Define a function that returns a `numString`, formatted as a `term[0]` and
-  with its multiplier rounded down by 1 decimal digit, subject to a maximum
-  count of decimal digits.
-*/
-var round = function(numString, decimalsMax) {
-  var cleanedString = clean(numString, true);
-  var analysis = parse(cleanedString);
-  var dotIndex = analysis[0].indexOf('.');
-  if (dotIndex > -1) {
-    analysis[0] = Number.parseFloat(analysis[0])
-      .toFixed(Math.min(decimalsMax, analysis[0].length - dotIndex -2));
-  }
-  return unparse(analysis);
 };
 
 /*
@@ -428,12 +437,14 @@ var takeInverter = function(state) {
 var takeDel = function(state) {
   if (state.inputs['op!'][1]) {
     if (state.numString) {
-      state.numString = charPop(state.numString);
-      if (!state.numString.length) {
-        state.numString = '';
-        if (state.terms.length) {
-          state.binaryOp = state.terms.pop();
-        }
+      if (document.getElementById('op~').classList.contains('button-non')) {
+        state.numString = charPop(state.numString);
+      }
+      else {
+        state.numString = roundPop(state.numString, 40);
+      }
+      if (!state.numString.length && state.terms.length) {
+        state.binaryOp = state.terms.pop();
       }
     }
     else if (state.binaryOp) {
@@ -444,23 +455,43 @@ var takeDel = function(state) {
   }
 };
 
-// Define a function that responds to a rounding operator input.
+// Define a function that responds to a rounding toggler input.
 var takeRound = function(state) {
   if (state.inputs['op~'][1] && state.numString) {
-    if (state.terms.length) {
-      finishResult(state, round(perform(state), 9));
+    var button = document.getElementById('op~');
+    var delButton = document.getElementById('op!');
+    var calcButton = document.getElementById('op=');
+    if (button.classList.contains('button-non')) {
+      button.classList.remove('button-non');
+      button.setAttribute('title', 'rounding-off-switch');
+      delButton.setAttribute('title', 'truncate-and-round-operator');
+      calcButton.setAttribute('title', 'calculate-and-round-operator');
     }
     else {
-      state.numString = round(state.numString, 99);
-      finish(state);
+      button.classList.add('button-non');
+      button.setAttribute('title', 'rounding-on-switch');
+      delButton.setAttribute('title', 'truncate-operator');
+      calcButton.setAttribute('title', 'calculate-operator');
     }
+    // if (state.terms.length) {
+    //   finishResult(state, round(perform(state), 9));
+    // }
+    // else {
+    //   state.numString = round(state.numString, 99);
+    //   finish(state);
+    // }
   }
 };
 
 // Define a function that responds to a calculation operator input.
 var takeEqual = function(state) {
   if (state.inputs['op='][1]) {
-    finishResult(state, perform(state));
+    if (document.getElementById('op~').classList.contains('button-non')) {
+      finishResult(state, perform(state));
+    }
+    else {
+      finishResult(state, round(perform(state), 9));
+    }
   }
 };
 

@@ -25,29 +25,8 @@ button:focus {
   border: 0.2rem solid blue;
 }
 
-.button-num,
-.button-dot {
-  opacity: 1;
-  transition: all 100ms;
-}
-
-.c {
-  text-align: center;
-}
-
-.calculator {
-  height: 14.4rem;
-  width: 16rem;
-  position: relative;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 6px;
-  box-shadow: 9px 9px 36px gray;
-}
-
-.row-tall {
-  height: 100%;
+.button-op.button-non {
+  color: gray;
 }
 
 .button-off,
@@ -74,13 +53,28 @@ button:focus {
 }
 
 .button-op,
-.result {
+#result {
   color: white;
 }
 
 .button-std {
   background-color: lightgray;
   color: black;
+}
+
+.c {
+  text-align: center;
+}
+
+.calculator {
+  height: 14.4rem;
+  width: 16rem;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 6px;
+  box-shadow: 9px 9px 36px gray;
 }
 
 .calculator,
@@ -141,6 +135,10 @@ main {
 
 .row-short .text {
   font-size: 1.8rem;
+}
+
+.row-tall {
+  height: 100%;
 }
 
 .t-round {
