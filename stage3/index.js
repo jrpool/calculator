@@ -292,13 +292,10 @@ var setInputs = function(state) {
   );
   state.inputs['op^'][1]
     = state.inputs['op1'][1] = Boolean(state.numString);
-  state.inputs['op!'][1] = Boolean(
+  state.inputs['op!'][1] = state.inputs['op~'][1] = Boolean(
     state.numString || state.binaryOp || state.terms.length
   );
   state.inputs['op='][1] = Boolean(state.terms.length && state.numString);
-  state.inputs['op~'][1] = Boolean(
-    state.numString && (state.terms.length || state.numString.includes('.'))
-  );
   session.setState(state);
   for (var inputCode in state.inputs) {
     var button = document.getElementById(inputCode);
@@ -473,13 +470,6 @@ var takeRound = function(state) {
       delButton.setAttribute('title', 'truncate-operator');
       calcButton.setAttribute('title', 'calculate-operator');
     }
-    // if (state.terms.length) {
-    //   finishResult(state, round(perform(state), 9));
-    // }
-    // else {
-    //   state.numString = round(state.numString, 99);
-    //   finish(state);
-    // }
   }
 };
 
@@ -490,7 +480,7 @@ var takeEqual = function(state) {
       finishResult(state, perform(state));
     }
     else {
-      finishResult(state, round(perform(state), 9));
+      finishResult(state, roundPop(perform(state), 9));
     }
   }
 };
