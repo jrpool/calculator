@@ -54,7 +54,7 @@ A `term[0]` has the same format as a `numString`, except that:
 
 Numbers in scientific notation (i.e. with `e`) cannot be directly input. They arise automatically in very large or very small results.
 
-Whether any input can be performed depends on the values of `numString`, `binaryOp`, and `terms`. The `inputs` property of the state specifies whether each input can currently be performed. For example, if the state is empty, the only performable input is the decimal point. If you then enter a digit, 7 more inputs (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
+Whether any input can be performed depends on the values of `numString`, `binaryOp`, and `terms`. The `inputs` property of the state specifies whether each input can currently be performed. For example, if the state is empty, the only performable inputs are digits and the decimal point. If you then enter a digit, 7 more inputs (such as `+`) become performable. At any time, only the performable inputs are enabled; the other inputs are disabled. When an input is disabled, its button and its keypresses have no effect.
 
 The state is always displayed in the calculator. The `terms` elements and the `numString` or `binaryOp` are concatenated and displayed at the top. An example is `-456.78 ÷ 31`, where `31` is the `numString`. The `inputs` are displayed as buttons: bright if enabled, and dim if disabled.
 
