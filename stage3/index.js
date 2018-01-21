@@ -246,7 +246,10 @@ var showState = function(state) {
     = (viewLength > 11 ? Math.ceil(2475 / viewLength): 225).toString() + '%';
 };
 
-// Define a function that enables all and only eligible inputs.
+/*
+  Define a function that enables all and only eligible inputs and makes all
+  and only their buttons focusable.
+*/
 var setInputs = function(state) {
   var notTooLong = 40 > state.numString.length + (
     state.terms.length ? state.terms[0].length : 0
@@ -293,10 +296,12 @@ var setInputs = function(state) {
     if (state.inputs[inputCode][1]) {
       button.classList.remove('button-off');
       button.classList.add('button-on');
+      button.setAttribute('tabindex', button.getAttribute('tx'));
     }
     else {
       button.classList.remove('button-on');
       button.classList.add('button-off');
+      button.setAttribute('tabindex', '-1');
     }
   }
 };
