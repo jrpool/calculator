@@ -444,25 +444,23 @@ var takeDel = function(state) {
   }
 };
 
+// Define a function that responds to a rounding operator input.
+var takeRound = function(state) {
+  if (state.inputs['op~'][1] && state.numString) {
+    if (state.terms.length) {
+      finishResult(state, round(perform(state), 9));
+    }
+    else {
+      state.numString = round(state.numString, 99);
+      finish(state);
+    }
+  }
+};
+
 // Define a function that responds to a calculation operator input.
 var takeEqual = function(state) {
   if (state.inputs['op='][1]) {
     finishResult(state, perform(state));
-  }
-};
-
-// Define a function that responds to a rounding operator input.
-var takeRound = function(state) {
-  if (state.inputs['op~'][1]) {
-    if (state.numString) {
-      if (state.terms.length) {
-        finishResult(state, round(perform(state), 9));
-      }
-      else {
-        state.numString = round(state.numString, 99);
-        finish(state);
-      }
-    }
   }
 };
 
