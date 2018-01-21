@@ -28,7 +28,9 @@ Stage 1 constructed a clone of the appearance and aesthetic response of the Calc
 
 Stage 2 added JavaScript code to make the calculator perform calculating operations in response to user actions. Stage 2 also changed the layout of the calculator and the set of its buttons. It also changed the appearance of the buttons, making them dim and inert when the state of the calculator made them ineligible for use. It is documented in its own [README file](README2.md). There is a [more detailed discussion](http://stulta.com/forumo/archives/2089) of stage 2 and its motivation.
 
-Stage 3 added accessibility features to the calculator.
+Stage 3 added accessibility features to the calculator. These features include:
+
+- 
 
 ### Implementation logic
 
@@ -44,6 +46,7 @@ At any time, the application is in some _state_. The state is the facts that the
 - _binaryOp_: the string `+`, `-`, `×`, or `÷`, or else undefined.
 - _terms_: an array of 0, 1, or 2 elements. If it has a first element (`terms[0]`), that is a string representing a number. If it also has a second element (`terms[1]`), that is the string `+`, `-`, `×`, or `÷`.
 - _inputs_: an array of data specifying, for each possible input, its button’s appearance type, whether it is enabled, and which input is the next in the navigation order.
+- _round_: a Boolean value specifying whether rounding is in effect for truncations and calculations.
 
 The format of any `numString` is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _inverter_). A numString (if not empty) must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
 
@@ -64,23 +67,16 @@ The state is always displayed in the calculator. The `terms` elements and the `n
 
 The `op^` input, performed with the `±` button or the`` ` ``key, toggles the presence of a negator in `numString`.
 
-Inputting a `binaryOp` when there is a `numString` has an effect that depends on the `terms`.
-
-- If there is no `term`, it converts the `numString` to `term[0]`.
-- If there are 2 `terms`, it performs the calculation on them and the `numString` and makes the result `term[0]`.
-
-Inputting a digit when there is a `binaryOp` converts the `binaryOp` to `terms[1]`.
-
 The `op1` input, performed with the `⅟` button or the `\` key, toggles the presence of an inverter in the `numString`.
 
-The `op~` input, performed with the `≅` button or the `~` key, rounds, and how it rounds depends on the state.
+The `op!` input, performed with the `⌫` button or the `Backspace`, `Escape`, or `Clear` key, truncates the `numString` incrementally or deletes the `binaryOp`. If doing that eliminates a `binaryOp` or the only remaining digit of a `numString`, the change in state that would have occurred upon the inputting of that character is reversed. For example, if the `terms` are `123` and `+` and there is a `numString` of `5`, inputting `op!` deletes the `numString` and converts the `+` from `terms[1] to `binaryOp`. Any format changes enforced on a `numString` when it was converted to `terms[0]`, however, are not reversed if a deletion returns it from `terms[0]` to `numString`.
 
-- If there are a `numString` and 2 terms, it performs the calculation with rounding.
-- If there is a `numString` and no term, it rounds the `numString`.
+The `op=` input, performed with the `=` button or the `=` or `Enter` key, performs the calculation, makes the result the `numString`, and empties the `terms`.
 
-The `op=` input, performed with the `=` button or the `=` or `Enter` key, performs the calculation (without rounding).
+The `op~` input, performed with the `≈` button or the `~` key, switches rounding on or off. Rounding is initially on when the application is loaded. Whether rounding is on or off affects both calculation and truncation.
 
-The `op!` input, performed with the `⌫` button or the `Backspace`, `Escape`, or `Clear` key, deletes the final character of the state. If doing that eliminates a `binaryOp` or the only remaining digit of a `numString`, the change in state that would have occurred upon the inputting of that character is reversed. For example, if the `terms` are `123` and `+` and there is a `numString` of `5`, inputting `op!` deletes the `5` and converts the `+` from `terms[1] to `binaryOp`. Any format changes enforced on a `numString` when it was converted to `terms[0]`, however, are not reversed if a deletion returns it from `terms[0]` to `numString`.
+- Rounding makes calculation round the result when it differs only slightly from a rounder number. For example, with rounding off, a calculation of `8.1 – 6` (incorrectly) produces `2.0999999999999996` (an artifact of binary number representation). With rounding on, it produces `2.1`.
+- Rounding makes truncation perform rounding, too. For example, with rounding off, truncating `4.8` produces `4.`. With rounding on, it produces `5`.
 
 A `binaryOp` input, performed with any of the buttons in the left-most column or with the `+` (plus), `-` (minus), `*` (times), or `/` or `÷` (divided by) key, has an effect that depends on the state.
 
@@ -88,7 +84,12 @@ A `binaryOp` input, performed with any of the buttons in the left-most column or
 - If there are 1 term and a `binaryOp`, it replaces the `binaryOp` with itself.
 - If there are 2 terms and a `numString`, it performs the calculation with those 3 arguments, replaces the terms with the result as 1 term, and makes itself the `binaryOp`.
 
-Notwithstanding any of the rules above, the calculator disables the input of any digit if the aggregate length of `numString` and `terms[0] reaches 40.
+A digit or decimal-point input has an effect that depends on the state.
+
+- If there is a `binaryOp`, it converts the `binaryOp` to `terms[1]` and makes `0.` the initial value of `numString`.
+- If there is a `numString`, it appends itself to the `numString`.
+
+Notwithstanding any of the rules above, the calculator disables the input of any digit if the aggregate length of `numString` and `terms[0]` reaches 40.
 
 The above rules, while not intuitive as presented, are intended to produce a calculator that does what the user’s intuition anticipates.
 
