@@ -302,6 +302,22 @@ var setInputs = function(state) {
       button.classList.remove('button-on');
       button.classList.add('button-off');
       button.setAttribute('tabindex', '-1');
+      if (document.activeElement === button) {
+        var newFocus;
+        if (document.getElementById('num0').classList.contains('button-on')) {
+          newFocus = 'num0';
+        }
+        else if (
+          button.id === 'num0'
+          && document.getElementById('num.').classList.contains('button-on')
+        ) {
+          newFocus = 'num.';
+        }
+        else {
+          newFocus = 'op!';
+        }
+        document.getElementById(newFocus).focus();
+      }
     }
   }
 };
