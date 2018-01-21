@@ -14,6 +14,17 @@
   border-radius: 0 0 6px 0;
 }
 
+button {
+  float: left;
+  height: 100%;
+  width: 20%;
+}
+
+button:focus {
+  padding: -0.2rem;
+  border: 0.2rem solid blue;
+}
+
 .button-num,
 .button-dot {
   opacity: 1;
@@ -33,16 +44,6 @@
   transform: translate(-50%, -50%);
   border-radius: 6px;
   box-shadow: 9px 9px 36px gray;
-}
-
-.button {
-  width: 20%;
-}
-
-.button,
-.button-area {
-  float: left;
-  height: 100%;
 }
 
 .row-tall {
@@ -83,7 +84,7 @@
 }
 
 .calculator,
-.button,
+button,
 .result {
   border: 1px solid gray;
 }
