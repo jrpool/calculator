@@ -209,7 +209,8 @@ var session = (function() {
       'op!': ['op', false],
       'op~': ['op', false],
       'op=': ['op', false]
-    }
+    },
+    round: true
   };
   var inputs = Object.keys(state.inputs);
   for (var i = 0; i < inputs.length - 1; i++) {
@@ -235,7 +236,18 @@ var perform = function(state) {
     case '–': result = num0 - num1; break;
     case '+': result = num0 + num1; break;
   }
-  return typeof result === 'number' ? result.toString() : '';
+  console.log('Result is ' + result);
+  if (typeof result === 'number') {
+    var roundedResult = Math.round(result);
+    if (Math.abs(roundedResult - result) < 0.0000000001) {
+      result = roundedResult;
+    }
+    console.log('Result is ' + result);
+    return result.toString();
+  }
+  else {
+    return '';
+  }
 };
 
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
@@ -434,11 +446,11 @@ var takeInverter = function(state) {
 var takeDel = function(state) {
   if (state.inputs['op!'][1]) {
     if (state.numString) {
-      if (document.getElementById('op~').classList.contains('button-non')) {
-        state.numString = charPop(state.numString);
+      if (state.round) {
+        state.numString = roundPop(state.numString, 9);
       }
       else {
-        state.numString = roundPop(state.numString, 40);
+        state.numString = charPop(state.numString);
       }
       if (!state.numString.length && state.terms.length) {
         state.binaryOp = state.terms.pop();
@@ -452,35 +464,38 @@ var takeDel = function(state) {
   }
 };
 
-// Define a function that responds to a rounding toggler input.
+// Define a function that responds to a rounding switch input.
 var takeRound = function(state) {
   if (state.inputs['op~'][1] && state.numString) {
     var button = document.getElementById('op~');
     var delButton = document.getElementById('op!');
     var calcButton = document.getElementById('op=');
-    if (button.classList.contains('button-non')) {
-      button.classList.remove('button-non');
-      button.setAttribute('title', 'rounding-off-switch');
-      delButton.setAttribute('title', 'truncate-and-round-operator');
-      calcButton.setAttribute('title', 'calculate-and-round-operator');
-    }
-    else {
+    if (state.round) {
+      state.round = false;
       button.classList.add('button-non');
       button.setAttribute('title', 'rounding-on-switch');
       delButton.setAttribute('title', 'truncate-operator');
       calcButton.setAttribute('title', 'calculate-operator');
     }
+    else {
+      state.round = true;
+      button.classList.remove('button-non');
+      button.setAttribute('title', 'rounding-off-switch');
+      delButton.setAttribute('title', 'truncate-and-round-operator');
+      calcButton.setAttribute('title', 'calculate-and-round-operator');
+    }
+    finish(state);
   }
 };
 
 // Define a function that responds to a calculation operator input.
 var takeEqual = function(state) {
   if (state.inputs['op='][1]) {
-    if (document.getElementById('op~').classList.contains('button-non')) {
-      finishResult(state, perform(state));
+    if (state.round) {
+      finishResult(state, roundPop(perform(state), 9));
     }
     else {
-      finishResult(state, roundPop(perform(state), 9));
+      finishResult(state, perform(state));
     }
   }
 };
