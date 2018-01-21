@@ -236,13 +236,11 @@ var perform = function(state) {
     case '–': result = num0 - num1; break;
     case '+': result = num0 + num1; break;
   }
-  console.log('Result is ' + result);
   if (typeof result === 'number') {
-    var roundedResult = Math.round(result);
-    if (Math.abs(roundedResult - result) < 0.0000000001) {
+    var roundedResult = result.toFixed(9);
+    if (Math.abs(roundedResult - result) < 0.00000001) {
       result = roundedResult;
     }
-    console.log('Result is ' + result);
     return result.toString();
   }
   else {
