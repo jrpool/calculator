@@ -117,12 +117,17 @@ var inputCodeOf = function(keyText) {
     '7': 'num7',
     '8': 'num8',
     '9': 'num9',
+    '±': 'op^',
     '`': 'op^',
+    '×': 'op*',
     '*': 'op*',
     '4': 'num4',
     '5': 'num5',
     '6': 'num6',
+    '⅟': 'op1',
     '\\': 'op1',
+    '−': 'op-',
+    '–': 'op-',
     '-': 'op-',
     '1': 'num1',
     '2': 'num2',
@@ -135,6 +140,7 @@ var inputCodeOf = function(keyText) {
     '.': 'num.',
     '=': 'op=',
     'Enter': 'op=',
+    '≈': 'op~',
     '~': 'op~',
     'Tab': 'Tab'
   };
@@ -207,8 +213,8 @@ var session = (function() {
       'op^': ['op', false],
       'op1': ['op', false],
       'op!': ['op', false],
-      'op~': ['op', false],
-      'op=': ['op', false]
+      'op=': ['op', false],
+      'op~': ['op', false]
     },
     round: true
   };
@@ -473,16 +479,16 @@ var takeRound = function(state) {
     if (state.round) {
       state.round = false;
       button.classList.add('button-non');
-      button.setAttribute('title', 'rounding-on-switch');
-      delButton.setAttribute('title', 'truncate-operator');
-      calcButton.setAttribute('title', 'calculate-operator');
+      button.setAttribute('title', 'rounding-on-switch (also ≈ or ~ key)');
+      delButton.setAttribute('title', 'truncate-operator (also Delete or Clear or Escape key)');
+      calcButton.setAttribute('title', 'calculate-operator (also = or Enter key)');
     }
     else {
       state.round = true;
       button.classList.remove('button-non');
-      button.setAttribute('title', 'rounding-off-switch');
-      delButton.setAttribute('title', 'truncate-and-round-operator');
-      calcButton.setAttribute('title', 'calculate-and-round-operator');
+      button.setAttribute('title', 'rounding-off-switch (also ≈ or ~ key)');
+      delButton.setAttribute('title', 'truncate-and-round-operator (also Delete or Clear or Escape key)');
+      calcButton.setAttribute('title', 'calculate-and-round-operator (also = or Enter key)');
     }
     finish(state);
   }
