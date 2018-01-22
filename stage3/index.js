@@ -11,7 +11,7 @@ var parse = function(numString) {
   return [
     numString.replace(/^[⅟-]+|e.+$/g, ''),
     numString.replace(/^[^e]+/, ''),
-    numString.startsWith('⅟'),
+    numString.indexOf('⅟') === 0,
     numString.includes('-')
   ];
 };
@@ -152,10 +152,10 @@ var inputCodeOf = function(keyText) {
   represents.
 */
 var charOf = function(code) {
-  if (code.startsWith('num')) {
+  if (code.indexOf('num') === 0) {
     return code.slice(-1);
   }
-  else if (code.startsWith('op')) {
+  else if (code.indexOf('op') === 0) {
     return '÷×–+'['/*-+'.indexOf(code.slice(-1))];
   }
   else {
@@ -165,7 +165,7 @@ var charOf = function(code) {
 
 // Define a function that returns the HTML of a numString.
 var htmlOf = function(numString) {
-  if (numString.startsWith('⅟')) {
+  if (numString.indexOf('⅟') === 0) {
     return '<span class="tight hi">1/</span>' + numString.slice(1);
   }
   else {
@@ -506,14 +506,13 @@ var takeEqual = function(state) {
 // Define a utility for the event handlers.
 var inputRespond = function(code) {
   var state = session.getState();
-  console.log('The type of code is ' + typeof code);
   if (code === 'num.') {
     takeDot(state);
   }
   else if (code === 'num0') {
     takeZero(state);
   }
-  else if (code.startsWith('num')) {
+  else if (code.indexOf('num') === 0) {
     takePositive(state, code);
   }
   else if (code === 'op1') {
@@ -531,7 +530,7 @@ var inputRespond = function(code) {
   else if (code === 'op~') {
     takeRound(state);
   }
-  else if (code.startsWith('op')) {
+  else if (code.indexOf('op') === 0) {
     takeBinary(state, code);
   }
 };
