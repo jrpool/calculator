@@ -4,7 +4,7 @@
   Define a function that returns an analysis of a numString, i.e. an array of:
     (0) its multiplier
     (1) its multiplicand
-    (2) whether it has an inverter
+    (2) whether it has a reciprocalizer
     (3) whether it has a negator
 */
 var parse = function(numString) {
@@ -57,7 +57,7 @@ var clean = function(string, isTerm) {
   return unparse(analysis);
 };
 
-// Define a function that toggles the negator or inverter of a numString.
+// Define a function that toggles the negator or reciprocalizer of a numString.
 var toggledOf = function(numString, prefix) {
   var analysis = parse(numString);
   var prefixIndex = 2 + ['⅟', '-'].indexOf(prefix);
@@ -92,8 +92,8 @@ var roundPop = function(numString, decimalsMax) {
 
 /*
   Define a function that returns a `numString` with the last character of its
-  multiplier removed and, if the removal leaves it empty, with any inverter
-  or negator deleted.
+  multiplier removed and, if the removal leaves it empty, with any
+  reciprocalizer or negator deleted.
 */
 var charPop = function(numString) {
   var analysis = parse(numString);
@@ -443,7 +443,7 @@ var takeNegator = function(state) {
   takeModifier(state, 'op^', '-');
 };
 
-// Define a function that responds to an inverter entry.
+// Define a function that responds to a reciprocalizer entry.
 var takeInverter = function(state) {
   takeModifier(state, 'op1', '⅟');
 };

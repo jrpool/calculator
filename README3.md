@@ -49,7 +49,7 @@ As of stage 3, the implementation is based on the following concepts and rules.
 
 An _input_ is a single input that a user can perform. For each input, there is a button and there is at least 1 keypress that can perform it.
 
-Each input has a _code_: a unique identifier of that input. For example, the input of the digit `1` has the code `num1`. The input of the inversion operator (the operator that divides 1 by a number) is `op1`.
+Each input has a _code_: a unique identifier of that input. For example, the input of the digit `1` has the code `num1`. The input of the reciprocal operator (the operator that divides 1 by a number) is `op1`.
 
 At any time, the application is in some _state_. The state is the facts that the user can still do something about without restarting the application. The state is composed of 4 facts:
 
@@ -59,13 +59,13 @@ At any time, the application is in some _state_. The state is the facts that the
 - _inputs_: an array of data specifying, for each possible input, its button’s appearance type, whether it is enabled, and which input is the next in the navigation order.
 - _round_: a Boolean value specifying whether rounding is in effect for truncations and calculations.
 
-The format of any `numString` is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _inverter_). A numString (if not empty) must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
+The format of any `numString` is exemplified by `⅟-1234.56e+15`. This represents the number you get when you multiply 1234.56 (the _multiplier_) by `e+15` (the _multiplicand_ and, in this example, equivalent to 10 to the 15th power, i.e. 1,000,000,000,000,000), then make the result negative (indicated by `-`, the _negator_), and then divide 1 by the result (indicated by `⅟`, the _reciprocalizer_). A numString (if not empty) must contain at least one digit, but otherwise it can contain or omit all the components shown here. The sign following `e` can be either `+` or `-`.
 
 In a `numString` the multiplier cannot begin with '0' immediately followed by another digit, and also cannot contain “.” before its first digit. So, the application converts `0056` to `56`, and it converts `.5` to `0.5`.
 
 A `term[0]` has the same format as a `numString`, except that:
 
-- There must not be an inverter. The application calculates the reciprocal and displays that instead.
+- There must not be a reciprocalizer. The application calculates the reciprocal and displays that instead.
 - There must not be a negator if the multiplier is `0`. The application deletes the negator in that case.
 - There must not be trailing `0`s in the multiplier after a decimal point.
 - There must not be a decimal point in the multiplier unless there is at least 1 digit after it.
@@ -78,7 +78,7 @@ The state is always displayed in the calculator. The `terms` elements and the `n
 
 The `op^` input, performed with the `±` button or the`` ` ``key, toggles the presence of a negator in `numString`.
 
-The `op1` input, performed with the `⅟` button or the `\` key, toggles the presence of an inverter in the `numString`.
+The `op1` input, performed with the `⅟` button or the `\` key, toggles the presence of a reciprocalizer in the `numString`.
 
 The `op!` input, performed with the `⌫` button or the `Backspace`, `Escape`, or `Clear` key, truncates the `numString` incrementally or deletes the `binaryOp`. If doing that eliminates a `binaryOp` or the only remaining digit of a `numString`, the change in state that would have occurred upon the inputting of that character is reversed. For example, if the `terms` are `123` and `+` and there is a `numString` of `5`, inputting `op!` deletes the `numString` and converts the `+` from `terms[1] to `binaryOp`. Any format changes enforced on a `numString` when it was converted to `terms[0]`, however, are not reversed if a deletion returns it from `terms[0]` to `numString`.
 
