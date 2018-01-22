@@ -506,6 +506,7 @@ var takeEqual = function(state) {
 // Define a utility for the event handlers.
 var inputRespond = function(code) {
   var state = session.getState();
+  console.log('The type of code is ' + typeof code);
   if (code === 'num.') {
     takeDot(state);
   }

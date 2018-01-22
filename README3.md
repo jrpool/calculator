@@ -116,6 +116,6 @@ Stage 1: To experience the product of stage 1, open the [stage-1 web page](https
 
 Stage 2: To experience the product of stage 2, open the [stage-2 web page](https://jrpool.github.io/calculator/stage2/) in a web browser, hover over buttons, and click on buttons.
 
-Stage 3: To experience the product of stafge 3, open the [stage-3 web page](https://jrpool.github.io/calculator/stage3/) in a web browser, hover over buttons, click on buttons, navigate among buttons with the tab and shift-tab keys, operate focal buttons with the space or Enter or Return key, and press button-equivalent keyboard keys (described by tooltips appearing during hovering).
+Stage 3: To experience the product of stage 3, open the [stage-3 web page](https://jrpool.github.io/calculator/stage3/) in a web browser, hover over buttons, click on buttons, navigate among buttons with the tab and shift-tab keys, operate focal buttons with the space or Enter or Return key, and press button-equivalent keyboard keys (described by tooltips appearing during hovering).
 
 [lg]: https://www.learnersguild.org
