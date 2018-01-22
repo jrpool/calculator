@@ -546,6 +546,7 @@ var clickRespond = function(event) {
 var keyRespond = function(event) {
   var code = inputCodeOf(event.key);
   if (code) {
+    document.getElementById(code).focus();
     inputRespond(code);
   }
 };

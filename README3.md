@@ -28,13 +28,14 @@ Stage 1 constructed a clone of the appearance and aesthetic response of the Calc
 
 Stage 2 added JavaScript code to make the calculator perform calculating operations in response to user actions. Stage 2 also changed the layout of the calculator and the set of its buttons. It also changed the appearance of the buttons, making them dim and inert when the state of the calculator made them ineligible for use. It is documented in its own [README file](README2.md). There is a [more detailed discussion](http://stulta.com/forumo/archives/2089) of stage 2 and its motivation.
 
-Stage 3 added _accessibility_ features to the calculator. These are features that serve the purpose of making the application usable, or more easily usable, by users with a variety of sensory and motor skills (including users with disabilities and age-related limitations). Features addressing recommendations of the Web Accessibility Guidelines Working Group are annotated with the numbers of the guidelines or success criteria in [Web Content Accessibility Guidelines 2.1](https://www.w3.org/TR/WCAG21/). The accessibility features in this stage (and some in stage 2) include:
+Stage 3 added _accessibility_ features to the calculator. These are features that serve the purpose of making the application usable, or more easily usable, by users with a variety of sensory and motor skills (including users with disabilities and age-related limitations). Features addressing recommendations of the Web Accessibility Guidelines Working Group are annotated with the numbers of the guidelines or success criteria in [Web Content Accessibility Guidelines 2.1](https://www.w3.org/TR/WCAG21/). Features addressing recommendations of the Accessible Rich Internet Applications Working Group are annotated with the numbers of paragraphs in [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/), preceded by “ARIA”. The accessibility features in this stage (and some in stage 2) include:
 
 - Giving titles to buttons, so that users see button descriptions when hovering over buttons and so that assistive technologies can describe buttons’ purposes to users. This helps users predict the effect of operating any button. (3.2)
 - Making each button title begin with the most distinctive word in the title, to minimize reading or listening time.
 - Making the buttons navigable with standard keyboard methods (`tab` and `shift-tab` keys). (2.1)
 - Giving each button at least one keypress alternative. (2.1)
 - Making the keypress alternatives predictable by making them identical to the button contents, or else specifying them in the button titles. (3.2)
+- Choosing mnemonic keys for additional keypress alternatives. (ARIA 5.9.2)
 - Making tab-key navigation traverse the buttons in an intrinsic order (`0`–`9`, then `.`, then binary operators, then number modifiers, then calculate operator, then rounding switch) instead of an order based on the locations of the buttons. (2.4.3)
 - Making it obvious which button currently has focus. (2.4.7)
 - Disabling buttons that, given the current state, have no effect. (3.2)
@@ -42,6 +43,7 @@ Stage 3 added _accessibility_ features to the calculator. These are features tha
 - Making button and result font size large enough for users with limited vision, but also enlargeable without loss of visibility or functionality. (1.4.4)
 - Making rounding less confusing by changing the stage-2 rounding **operator** to a rounding **mode switch** in stage 3. The operator either calculated or truncated, and in some states it could have done either but did only one. As a mode switch it lets the user turn rounding on or off for both calculations and truncations. (3.2)
 - Making calculation’s and truncation’s titles vary, depending on whether rounding is on and off, to clarify what each operation will do. (3.2)
+- Displaying the entire state, so user does not need to remember prior inputs that will determine future behavior.
 
 ### Implementation logic
 
