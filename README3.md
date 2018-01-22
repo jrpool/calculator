@@ -22,11 +22,17 @@ Mac Calculator | This calculator
 --- | ---
 <img src="stage3/images/maccalc.png" alt="Mac calculator" height="310px"> | <img src="stage3/images/calculator.png" alt="This calculator" height="310px">
 
+### Stages
+
 The exercise built the application in 3 stages.
+
+#### Earlier
 
 Stage 1 constructed a clone of the appearance and aesthetic response of the Calculator application of the Macintosh OS X operating system. The calculator responded to hovering and to clicks by darkening the target elements. Its appearance and response were produced by HTML and CSS code. Stage 1 of the calculator did not calculate.
 
 Stage 2 added JavaScript code to make the calculator perform calculating operations in response to user actions. Stage 2 also changed the layout of the calculator and the set of its buttons. It also changed the appearance of the buttons, making them dim and inert when the state of the calculator made them ineligible for use. It is documented in its own [README file](README2.md). There is a [more detailed discussion](http://stulta.com/forumo/archives/2089) of stage 2 and its motivation.
+
+#### Stage 3: Accessibility
 
 Stage 3 added _accessibility_ features to the calculator. These are features that serve the purpose of making the application usable, or more easily usable, by users with a variety of sensory and motor skills (including users with disabilities and age-related limitations). Features addressing recommendations of the Web Accessibility Guidelines Working Group are annotated with the numbers of the guidelines or success criteria in [Web Content Accessibility Guidelines 2.1](https://www.w3.org/TR/WCAG21/). Features addressing recommendations of the Accessible Rich Internet Applications Working Group are annotated with the numbers of paragraphs in [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/), preceded by “ARIA”. The accessibility features in this stage (and some in stage 2) include:
 
@@ -44,6 +50,10 @@ Stage 3 added _accessibility_ features to the calculator. These are features tha
 - Making rounding less confusing by changing the stage-2 rounding **operator** to a rounding **mode switch** in stage 3. The operator either calculated or truncated, and in some states it could have done either but did only one. As a mode switch it lets the user turn rounding on or off for both calculations and truncations. (3.2)
 - Making calculation’s and truncation’s titles vary, depending on whether rounding is on and off, to clarify what each operation will do. (3.2)
 - Displaying the entire state, so user does not need to remember prior inputs that will determine future behavior.
+
+Arguably, accessibility is impaired if the application is not accessible via all existing browsers, including browsers not executing JavaScript. No attempt has been made to achieve that kind of accessibility.
+
+However, compatibility with the current version of Internet Explorer has been attempted, and as of now is incomplete. IE 11 mislocates the calculator within the window. This defect has not yet been diagnosed.
 
 ### Implementation logic
 
