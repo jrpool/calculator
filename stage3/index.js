@@ -139,10 +139,8 @@ var inputCodeOf = function(keyText) {
     '0': 'num0',
     '.': 'num.',
     '=': 'op=',
-    'Enter': 'op=',
     '≈': 'op~',
-    '~': 'op~',
-    'Tab': 'Tab'
+    '~': 'op~'
   };
   return keyCodeMap[keyText] || '';
 };
