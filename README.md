@@ -51,6 +51,8 @@ Compatibility with the current version of Internet Explorer has been attempted, 
 
 ## Future work
 
+When keyboard alternatives for buttons are pressed in combination with modifier keys, the calculator acts on them, although it should disregard them. Correction of this deficiency is planned.
+
 The addition of a clear-all operation is under consideration.
 
 ## Implementation
