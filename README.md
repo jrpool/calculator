@@ -24,12 +24,14 @@ Mac Calculator | This calculator
 
 Open the [web page](https://jrpool.github.io/calculator/) in a web browser, hover over buttons, click on buttons, navigate among buttons with the tab and shift-tab keys, operate focal buttons with the space or Enter or Return key, and press button-equivalent keyboard keys (described by tooltips appearing during hovering).
 
+As illustrated above, the focal button is marked by a frame, and any disabled button is dimmed. Buttons become enabled and disabled as you use the calculator.
+
 ## Usability and accessibility
 
 This calculator has some usability and accessibility features, partly missing from the Macintosh calculator. In the itemization below, features addressing recommendations of the Web Accessibility Guidelines Working Group are annotated with the numbers of the guidelines or success criteria in [Web Content Accessibility Guidelines 2.1](https://www.w3.org/TR/WCAG21/). Features addressing recommendations of the Accessible Rich Internet Applications Working Group are annotated with the numbers of paragraphs in [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/), preceded by “ARIA”.
 
-- Giving titles to buttons, so that users see button descriptions when hovering over buttons and assistive technologies can describe buttons’ purposes to users. This helps users predict the effect of operating any button. (3.2)
-- Making each button title begin with the most distinctive word in the title, to minimize reading or listening time.
+- Giving titles to buttons, so that you see button descriptions when hovering over buttons and assistive technologies can describe buttons’ purposes to you. This helps you predict the effect of operating any button. (3.2)
+- Making each button title begin with the most distinctive word in the title, to minimize your reading or listening time.
 - Making the buttons navigable with standard keyboard methods (`tab` and `shift-tab` keys). (2.1)
 - Giving each button at least one keypress alternative. (2.1)
 - Making the keypress alternatives predictable by making them identical to the button contents, or else specifying them in the button titles. (3.2)
@@ -38,12 +40,18 @@ This calculator has some usability and accessibility features, partly missing fr
 - Making it obvious which button currently has focus. (2.4.7)
 - Visibly disabling buttons that, given the current state, have no effect. (3.2)
 - Preventing loss of focus by moving focus from buttons being disabled to buttons remaining or becoming enabled. (2.4.7)
-- Making button and result font sizes large enough for users with limited vision, but also enlargeable without loss of visibility or functionality. (1.4.4)
-- Displaying the entire state, so the user does not need to remember prior inputs that will determine future behavior.
+- Making button and result font sizes large enough to see if you have limited vision, but also enlargeable without loss of visibility or functionality. (1.4.4)
+- Displaying the entire current state, so you don’t need to remember prior inputs that will determine future behavior.
+- Permitting you to divide 1 by the current input or result number (i.e. convert the number to its reciprocal).
+- Permitting you to shorten the current input or result number 1 digit at a time with rounding, so, for example, 3.438 gets shortened to 3.44.
 
 Arguably, accessibility is impaired if the application is not accessible via all existing browsers, including browsers not executing JavaScript. No attempt has been made to achieve that kind of accessibility. However, all JavaScript in this application is intended to conform to the ECMAScript 5 standard, omitting any features that were introduced in ECMAScript 2015. The intent is to make the application compatible with browsers that have not been updated to support ECMAScript 2015, as well as those that have been.
 
 Compatibility with the current version of Internet Explorer has been attempted, and as of now is incomplete. IE 11 mislocates the calculator within the window. This defect has not yet been diagnosed.
+
+## Future work
+
+The addition of a clear-all operation is under consideration.
 
 ## Implementation
 
