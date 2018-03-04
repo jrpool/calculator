@@ -380,7 +380,7 @@ var growNumString = function(state, code) {
     }
     finish(state);
   }
-}
+};
 
 // Define a function that responds to a digit or decimal-point entry.
 var takeZero = function(state) {
