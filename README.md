@@ -45,9 +45,7 @@ This calculator has some usability and accessibility features, partly missing fr
 - Permitting you to divide 1 by the current input or result number (i.e. convert the number to its reciprocal).
 - Permitting you to shorten the current input or result number 1 digit at a time with rounding, so, for example, 3.438 gets shortened to 3.44.
 
-Arguably, accessibility is impaired if the application is not accessible via all existing browsers, including browsers not executing JavaScript. No attempt has been made to achieve that kind of accessibility. However, all JavaScript in this application is intended to conform to the ECMAScript 5 standard, omitting any features that were introduced in ECMAScript 2015. The intent is to make the application compatible with browsers that have not been updated to support ECMAScript 2015, as well as those that have been.
-
-Compatibility with the current version of Internet Explorer has been attempted, and as of now is incomplete. IE 11 mislocates the calculator within the window. This defect has not yet been diagnosed.
+Arguably, accessibility is impaired if the application is not accessible via all existing browsers, including browsers not executing JavaScript. No attempt has been made to achieve that kind of accessibility. However, all JavaScript in this application is intended to be supported by all widely used web browsers. It is known that Internet Explorer 11 fails to support many of the JavaScript features used here, but it currently [has only a 3% market share](http://gs.statcounter.com/). In line with [arguments by Alex Ewerlöf](https://medium.freecodecamp.org/you-might-not-need-to-transpile-your-javascript-4d5e0a438ca), no transpilation for backward compatibility has been undertaken.
 
 ## Future work
 
