@@ -3,34 +3,29 @@
 /*
   Define a function that returns an analysis of a numString, i.e. an array of:
     (0) its multiplier as a string
-    (1) its multiplicand as a string
+    (1) its multiplicand (including “e”) as a string
     (2) whether it has a reciprocalizer
     (3) whether it has a negator
 */
-var parse = function(numString) {
-  return [
-    numString.replace(/^[⅟-]+|e.+$/g, ''),
-    numString.replace(/^[^e]+/, ''),
-    numString.indexOf('⅟') === 0,
-    numString.indexOf('-') > -1
-  ];
-};
+const parse = numString => [
+  numString.replace(/^[⅟-]+|e.+$/g, ''),
+  numString.replace(/^[^e]+/, ''),
+  numString.startsWith('⅟'),
+  numString.includes('-')
+];
 
 // Define a function that returns a numString of an analysis.
-var unparse = function(analysis) {
-  return (analysis[2] ? '⅟' : '')
-    + (analysis[3] ? '-' : '')
-    + analysis[0]
-    + analysis[1];
-};
+const unparse = analysis => `${analysis[2] ? '⅟' : ''}${
+  analysis[3] ? '-' : ''
+}${analysis[0]}${analysis[1]}`;
 
 /*
   Define a function that enforces the restrictions on a valid, nonblank
   numString or terms[0].
 */
-var clean = function(string, isTerm) {
-  var analysis = parse(string);
-  var digitGroups = analysis[0].split('.');
+const clean = (string, isTerm) => {
+  const analysis = parse(string);
+  const digitGroups = analysis[0].split('.');
   digitGroups[0] = digitGroups[0].replace(/^0+(?=\d)/, '');
   if (!digitGroups[0].length) {
     digitGroups[0] = '0';
@@ -40,13 +35,14 @@ var clean = function(string, isTerm) {
       digitGroups.push('');
     }
     digitGroups[1] = digitGroups[1].replace(/0+$/, '');
-    analysis[0] = digitGroups[0] + (
-      digitGroups[1].length ? '.' + digitGroups[1] : ''
-    );
+    analysis[0] = digitGroups[1].length
+      ? `${digitGroups[0]}.${digitGroups[1]}`
+      : digitGroups[0];
     if (analysis[2]) {
       analysis[0] = (
-        1 / Number.parseFloat(analysis[0] + analysis[1])
+        1 / Number.parseFloat(`${analysis[0]}${analysis[1]}`)
       ).toString();
+      analysis[1] = '';
       analysis[2] = false;
     }
     if (analysis[3] && analysis[0] === '0') {
@@ -60,9 +56,9 @@ var clean = function(string, isTerm) {
 };
 
 // Define a function that toggles the negator or reciprocalizer of a numString.
-var toggledOf = function(numString, prefix) {
-  var analysis = parse(numString);
-  var prefixIndex = 2 + ['⅟', '-'].indexOf(prefix);
+const toggledOf = (numString, prefix) => {
+  const analysis = parse(numString);
+  const prefixIndex = 2 + ['⅟', '-'].indexOf(prefix);
   analysis[prefixIndex] = !analysis[prefixIndex];
   return unparse(analysis);
 };
@@ -73,10 +69,10 @@ var toggledOf = function(numString, prefix) {
   the decimal point if no digit is left after it.
   Precondition: The `numString` has at least 1 decimal digit.
 */
-var roundPop = function(numString) {
-  var newPrecision = numString.length - numString.indexOf('.') - 2;
-  var analysis = parse(numString);
-  var maximalNewString = Number.parseFloat(analysis[0]).toFixed(newPrecision);
+const roundPop = numString => {
+  const newPrecision = numString.length - numString.indexOf('.') - 2;
+  const analysis = parse(numString);
+  const maximalNewString = Number.parseFloat(analysis[0]).toFixed(newPrecision);
   analysis[0] = Number.parseFloat(maximalNewString).toString();
   return unparse(analysis);
 };
@@ -86,8 +82,8 @@ var roundPop = function(numString) {
   multiplier removed and, if the removal leaves it empty, with any
   reciprocalizer or negator deleted.
 */
-var charPop = function(numString) {
-  var analysis = parse(numString);
+const charPop = numString => {
+  const analysis = parse(numString);
   if (analysis[0].length === 1) {
     return '';
   }
@@ -101,8 +97,8 @@ var charPop = function(numString) {
   Define a function that returns an input code that corresponds to a key text,
   or an empty string if none.
 */
-var inputCodeOf = function(keyText) {
-  var keyCodeMap = {
+const inputCodeOf = keyText => {
+  const keyCodeMap = {
     '÷': 'op/',
     '/': 'op/',
     '7': 'num7',
@@ -138,11 +134,11 @@ var inputCodeOf = function(keyText) {
   Define a function that converts an input code to the character that it
   represents.
 */
-var charOf = function(code) {
-  if (code.indexOf('num') === 0) {
+const charOf = code => {
+  if (code.startsWith('num')) {
     return code.slice(-1);
   }
-  else if (code.indexOf('op') === 0) {
+  else if (code.startsWith('op')) {
     return '÷×–+'['/*-+'.indexOf(code.slice(-1))];
   }
   else {
@@ -151,9 +147,9 @@ var charOf = function(code) {
 };
 
 // Define a function that returns the HTML of a numString.
-var htmlOf = function(numString) {
-  if (numString.indexOf('⅟') === 0) {
-    return '<span class="tight hi">1/</span>' + numString.slice(1);
+const htmlOf = numString => {
+  if (numString.startsWith('⅟')) {
+    return `<span class="tight hi">1/</span>${numString.slice(1)}`;
   }
   else {
     return numString;
@@ -164,8 +160,8 @@ var htmlOf = function(numString) {
   Define a function that returns a numString with a character appended to the
   multiplier.
 */
-var charAppend = function(numString, code) {
-  var analysis = parse(numString);
+const charAppend = (numString, code) => {
+  const analysis = parse(numString);
   analysis[0] += charOf(code);
   return unparse(analysis);
 };
@@ -176,8 +172,8 @@ var charAppend = function(numString, code) {
   Define a local object representing the document’s state and global methods
   that get and set the state. Initialize the state’s properties.
 */
-var session = (function() {
-  var state = {
+const session = (() => {
+  let state = {
     numString: '',
     binaryOp: undefined,
     terms: [],
@@ -205,24 +201,19 @@ var session = (function() {
     },
     round: true
   };
-  var inputs = Object.keys(state.inputs);
-  for (var i = 0; i < inputs.length - 1; i++) {
-    state.inputs[inputs[i]].push(inputs[i + 1]);
-  }
-  state.inputs[inputs[inputs.length - 1]].push(inputs[0]);
   return {
-    getState: function() {return JSON.parse(JSON.stringify(state));},
-    setState: function(newState) {state = JSON.parse(JSON.stringify(newState));}
+    getState: () => JSON.parse(JSON.stringify(state)),
+    setState: newState => {state = JSON.parse(JSON.stringify(newState));}
   };
 })();
 
 /*
   Define a function that returns, as a string, the result of a calculation.
 */
-var perform = function(state) {
-  var num0 = Number.parseFloat(state.terms[0]);
-  var num1 = Number.parseFloat(clean(state.numString, true));
-  var result;
+const perform = state => {
+  const num0 = Number.parseFloat(state.terms[0]);
+  const num1 = Number.parseFloat(clean(state.numString, true));
+  let result;
   switch (state.terms[1]) {
     case '÷': result = num0 / num1; break;
     case '×': result = num0 * num1; break;
@@ -240,37 +231,37 @@ var perform = function(state) {
 // /// STATE MODIFICATION: ENTRY-TYPE-SPECIFIC /// //
 
 // Define a function that displays the state in the calculator.
-var showState = function(state) {
-  var views = [];
+const showState = state => {
+  const views = [];
   views.push(state.terms[0] || '');
   views.push(state.terms[1] || '');
   views.push(state.numString ? htmlOf(state.numString) : '');
   views.push(state.binaryOp || '');
-  var viewElement = document.getElementById('result');
+  const viewElement = document.getElementById('result');
   viewElement.innerHTML
-    = views.filter(function(view) {return view.length;}).join(' ');
-  var viewLength = viewElement.textContent.length;
+    = views.filter(view => view.length).join(' ');
+  const viewLength = viewElement.textContent.length;
   viewElement.style.fontSize
-    = (viewLength > 11 ? Math.ceil(2475 / viewLength): 225).toString() + '%';
+    = `${(viewLength > 11 ? Math.ceil(2475 / viewLength): 225).toString()}%`;
 };
 
 /*
   Define a function that enables all and only eligible inputs and makes all
   and only their buttons focusable.
 */
-var setInputs = function(state) {
-  var binaryOp = state.binaryOp;
-  var numString = state.numString;
-  var dotIndex = numString ? numString.indexOf('.') : -1;
-  var termCount = state.terms.length;
-  var notTooLong = 40 > numString.length + (
+const setInputs = state => {
+  const binaryOp = state.binaryOp;
+  const numString = state.numString;
+  const dotIndex = numString ? numString.indexOf('.') : -1;
+  const termCount = state.terms.length;
+  const notTooLong = 40 > numString.length + (
     termCount ? state.terms[0].length : 0
   );
   state.inputs['num0'][1] = notTooLong && (
     !numString || parse(numString)[0] !== '0'
   );
   state.inputs['num.'][1] = notTooLong && (
-    !numString || numString.indexOf('.') === -1
+    !numString || !numString.includes('.')
   );
   state.inputs['num1'][1] = notTooLong;
   state.inputs['num2'][1] = notTooLong;
@@ -303,8 +294,8 @@ var setInputs = function(state) {
     numString && dotIndex > -1 && dotIndex < numString.length - 1
   );
   session.setState(state);
-  for (var inputCode in state.inputs) {
-    var button = document.getElementById(inputCode);
+  for (const inputCode in state.inputs) {
+    const button = document.getElementById(inputCode);
     if (state.inputs[inputCode][1]) {
       button.classList.remove('button-off');
       button.classList.add('button-on');
@@ -315,7 +306,7 @@ var setInputs = function(state) {
       button.classList.add('button-off');
       button.setAttribute('tabindex', '-1');
       if (document.activeElement === button) {
-        var newFocus;
+        let newFocus;
         if (document.getElementById('num0').classList.contains('button-on')) {
           newFocus = 'num0';
         }
@@ -338,7 +329,7 @@ var setInputs = function(state) {
   Define a function that shows the state in the calculator, saves the state,
   and enables/disables inputs.
 */
-var finish = function(state) {
+const finish = state => {
   session.setState(state);
   showState(state);
   setInputs(state);
@@ -348,7 +339,7 @@ var finish = function(state) {
   Define a function that modifies the state in accord with the result of
   a binary operation.
 */
-var finishResult = function(state, result) {
+const finishResult = (state, result) => {
   if (result.length) {
     state.numString = result;
     state.terms = [];
@@ -358,7 +349,7 @@ var finishResult = function(state, result) {
 };
 
 // Define a function that makes a binary operator `term[1]`.
-var termifyOp = function(state) {
+const termifyOp = state => {
   if (state.binaryOp) {
     state.terms.push(state.binaryOp);
     state.binaryOp = undefined;
@@ -369,7 +360,7 @@ var termifyOp = function(state) {
   Define a function that appends a character to `numString` and, if that
   initializes `numString`, makes `op` `term[1]`.
 */
-var growNumString = function(state, code) {
+const growNumString = (state, code) => {
   if (state.inputs[code][1]) {
     if (state.numString) {
       state.numString = clean(charAppend(state.numString, code), false);
@@ -383,26 +374,20 @@ var growNumString = function(state, code) {
 };
 
 // Define a function that responds to a digit or decimal-point entry.
-var takeZero = function(state) {
-  growNumString(state, 'num0');
-};
+const takeZero = state => growNumString(state, 'num0');
 
 // Define a function that responds to a positive digit entry.
-var takePositive = function(state, code) {
-  growNumString(state, code);
-};
+const takePositive = (state, code) => growNumString(state, code);
 
 // Define a function that responds to a digit or decimal-point entry.
-var takeDot = function(state) {
-  growNumString(state, 'num.');
-};
+const takeDot = state => growNumString(state, 'num.');
 
 // Define a function that responds to a binary operator input.
-var takeBinary = function(state, code) {
+const takeBinary = (state, code) => {
   if (state.inputs[code][1]) {
     if (state.numString) {
       if (state.terms.length) {
-        var result = perform(state);
+        const result = perform(state);
         if (result.length) {
           state.terms = [clean(result, true)];
           state.numString = '';
@@ -419,7 +404,7 @@ var takeBinary = function(state, code) {
 };
 
 // Define a function that responds to a modifier entry.
-var takeModifier = function(state, opCode, opChar) {
+const takeModifier = (state, opCode, opChar) => {
   if (state.inputs[opCode][1]) {
     state.numString = toggledOf(state.numString, opChar);
     finish(state);
@@ -427,17 +412,13 @@ var takeModifier = function(state, opCode, opChar) {
 };
 
 // Define a function that responds to a negator entry.
-var takeNegator = function(state) {
-  takeModifier(state, 'op^', '-');
-};
+const takeNegator = state => takeModifier(state, 'op^', '-');
 
 // Define a function that responds to a reciprocalizer entry.
-var takeInverter = function(state) {
-  takeModifier(state, 'op1', '⅟');
-};
+const takeInverter = state => takeModifier(state, 'op1', '⅟');
 
 // Define a function that responds to a truncation or rounding operator input.
-var takeShorten = function(state, round) {
+const takeShorten = (state, round) => {
   if (state.inputs[round ? 'op~' : 'op!'][1]) {
     if (state.numString) {
       state.numString
@@ -455,7 +436,7 @@ var takeShorten = function(state, round) {
 };
 
 // Define a function that responds to a calculation operator input.
-var takeEqual = function(state) {
+const takeEqual = state => {
   if (state.inputs['op='][1]) {
     finishResult(state, perform(state));
   }
@@ -464,15 +445,15 @@ var takeEqual = function(state) {
 // /// STATE MODIFICATION: GENERAL /// //
 
 // Define a utility for the event handlers.
-var inputRespond = function(code) {
-  var state = session.getState();
+const inputRespond = code => {
+  const state = session.getState();
   if (code === 'num.') {
     takeDot(state);
   }
   else if (code === 'num0') {
     takeZero(state);
   }
-  else if (code.indexOf('num') === 0) {
+  else if (code.startsWith('num')) {
     takePositive(state, code);
   }
   else if (code === 'op1') {
@@ -490,21 +471,19 @@ var inputRespond = function(code) {
   else if (code === 'op=') {
     takeEqual(state);
   }
-  else if (code.indexOf('op') === 0) {
+  else if (code.startsWith('op')) {
     takeBinary(state, code);
   }
 };
 
 // Define an event handler for a mouse click.
-var clickRespond = function(event) {
-  inputRespond(event.target.id);
-};
+const clickRespond = event => inputRespond(event.target.id);
 
 //
 
 // Define an event handler for a keyboard keypress.
-var keyRespond = function(event) {
-  var code = inputCodeOf(event.key);
+const keyRespond = event => {
+  const code = inputCodeOf(event.key);
   if (code) {
     document.getElementById(code).focus();
     inputRespond(code);
