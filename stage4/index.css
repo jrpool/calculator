@@ -121,7 +121,7 @@ main {
 #result {
   font-size: 225%;
   text-align: right;
-  padding-right: .9rem;
+  padding: .1rem .9rem 0 0;
   background-color: darkgray;
 }
 
