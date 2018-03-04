@@ -70,8 +70,8 @@ const toggledOf = (numString, prefix) => {
   Precondition: The `numString` has at least 1 decimal digit.
 */
 const roundPop = numString => {
-  const newPrecision = numString.length - numString.indexOf('.') - 2;
   const analysis = parse(numString);
+  const newPrecision = analysis[0].length - analysis[0].indexOf('.') - 2;
   const maximalNewString = Number.parseFloat(analysis[0]).toFixed(newPrecision);
   analysis[0] = Number.parseFloat(maximalNewString).toString();
   return unparse(analysis);
@@ -198,8 +198,7 @@ const session = (() => {
       'op1': ['op', false],
       'op!': ['op', false],
       'op~': ['op', false]
-    },
-    round: true
+    }
   };
   return {
     getState: () => JSON.parse(JSON.stringify(state)),
